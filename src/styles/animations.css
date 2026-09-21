@@ -1,0 +1,276 @@
+/* ═══════════════════════════════════════════════════════════════
+   TechHaven — Elite Motion System v3.0
+   Apple-Grade Easing · Spring Physics · Smooth Interactions
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Core Keyframes ───────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes appleScaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+@keyframes appleSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes appleSlideDown {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+@keyframes appleHeroCrossfade {
+  0%   { opacity: 0; transform: scale(1.025) translateY(6px); }
+  100% { opacity: 1; transform: scale(1)     translateY(0);   }
+}
+
+@keyframes appleDrawerInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes appleDrawerInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes appleDrawerInBottom {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes appleSheetEnter {
+  from { opacity: 0; transform: scale(0.96) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+@keyframes appleProgressBar {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+@keyframes cartBadgeBounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.28); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+@keyframes skeletonShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0   rgba(255, 94, 20, 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(255, 94, 20, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(255, 94, 20, 0);   }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes badgePulse {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.75; }
+}
+
+/* ── Utility Animation Classes ────────────────────────────────── */
+.apple-crossfade-in {
+  animation: appleHeroCrossfade 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  will-change: opacity, transform;
+}
+.apple-slide-up {
+  animation: appleSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.apple-scale-in {
+  animation: appleScaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.apple-modal-enter {
+  animation: appleSheetEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+.apple-cart-bump {
+  animation: cartBadgeBounce 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.apple-drawer-right {
+  animation: appleDrawerInRight 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.apple-drawer-left {
+  animation: appleDrawerInLeft 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.apple-drawer-bottom {
+  animation: appleDrawerInBottom 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered reveal animation helper */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.30s; }
+
+/* Float animation for hero product images */
+.float-anim {
+  animation: floatY 4s ease-in-out infinite;
+}
+.float-anim-delayed {
+  animation: floatY 4s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+/* Apple Tactile Button */
+.btn-apple-tactile {
+  transition:
+    transform 150ms cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 250ms cubic-bezier(0.25, 1, 0.5, 1),
+    background 250ms cubic-bezier(0.25, 1, 0.5, 1),
+    filter 250ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+.btn-apple-tactile:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.btn-apple-tactile:active {
+  transform: scale(0.97);
+  filter: brightness(0.94);
+}
+
+/* Apple Glass Card */
+.apple-glass-panel {
+  background: rgba(20, 22, 31, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Apple Card Interactive Hover */
+.apple-card-interactive {
+  transition:
+    transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform, box-shadow;
+}
+.apple-card-interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 44px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,94,20,0.22);
+  border-color: rgba(255, 94, 20, 0.35);
+}
+
+/* Pulse ring for CTA attention */
+.pulse-ring {
+  animation: pulseRing 2s cubic-bezier(0.66, 0, 0, 1) infinite;
+}
+
+/* Spin loader */
+.spin-slow {
+  animation: spinSlow 1.4s linear infinite;
+}
+
+/* ── Mobile Touch Swipe & Bottom Nav Animations ────────────── */
+@keyframes bottomNavIn {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes imgSwipeLeft {
+  from { opacity: 0.4; transform: translateX(24px) scale(0.97); }
+  to   { opacity: 1;   transform: translateX(0) scale(1); }
+}
+
+@keyframes imgSwipeRight {
+  from { opacity: 0.4; transform: translateX(-24px) scale(0.97); }
+  to   { opacity: 1;   transform: translateX(0) scale(1); }
+}
+
+@keyframes centerGlowPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(255, 94, 20, 0.5), 0 0 16px rgba(255, 94, 20, 0.35); }
+  50%      { box-shadow: 0 10px 30px rgba(255, 94, 20, 0.75), 0 0 24px rgba(255, 94, 20, 0.55); }
+}
+
+.th-img-swipe-left {
+  animation: imgSwipeLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.th-img-swipe-right {
+  animation: imgSwipeRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Universal Tactile Micro-Haptic Click Feedback ─────────── */
+button:active,
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-ghost:active,
+.btn-th-orange:active,
+.btn-th-card-add:active,
+.btn-th-quick-cart:active,
+.th-icon-btn:active,
+.th-lang-btn:active,
+.th-touch-haptic:active,
+.th-product-card:active,
+.th-cat-card:active,
+.btn-apple-tactile:active,
+.th-nav-link:active {
+  transform: scale(0.965) !important;
+  transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+/* ── Cyber Neon Glow Pulse & Tech Accent ─────────────────────── */
+@keyframes cyberGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(255, 94, 20, 0.45), inset 0 0 10px rgba(255, 94, 20, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(255, 94, 20, 0.8), inset 0 0 16px rgba(255, 94, 20, 0.45);
+  }
+}
+
+.th-cyber-glow {
+  animation: cyberGlowPulse 2.4s infinite ease-in-out;
+}
+
+/* ── Seamless Page Transition ────────────────────────────────── */
+@keyframes pageEnterAnim {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.th-page-enter {
+  animation: pageEnterAnim 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

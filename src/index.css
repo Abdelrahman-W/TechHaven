@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
+@import './styles/design-system.css';
+@import './styles/components.css';
+@import './styles/animations.css';
+@import './styles/admin.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  line-height: 1.5;
+  scroll-behavior: smooth;
+}
+
+html[dir='ltr'], body.th-ltr {
+  direction: ltr;
+  text-align: left;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+html[dir='rtl'], body.th-rtl {
+  direction: rtl;
+  text-align: right;
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+a:hover {
+  color: var(--primary);
+}
+
+ul, ol {
+  list-style: none;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* ── App Layout ───────────────────────────────────────────────── */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Selection ────────────────────────────────────────────────── */
+::selection {
+  background-color: rgba(255, 94, 20, 0.3);
+  color: #fff;
+}
+
+/* ── P2-A11Y-01: Skip To Content Link ────────────────────────── */
+.th-skip-to-content {
+  position: absolute;
+  top: -120px;
+  left: 1.5rem;
+  z-index: 999999;
+  padding: 12px 24px;
+  background: var(--brand-orange, #FF5E14);
+  color: #FFFFFF !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  text-decoration: none;
+  transition: top 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-in-out;
+  opacity: 0;
+  pointer-events: none;
+}
+[dir="rtl"] .th-skip-to-content {
+  left: auto;
+  right: 1.5rem;
+}
+.th-skip-to-content:focus,
+.th-skip-to-content:focus-visible {
+  top: 1rem;
+  opacity: 1;
+  pointer-events: auto;
+  outline: 3px solid #FFFFFF;
+  outline-offset: 2px;
+}
+#main-content {
+  scroll-margin-top: 90px;
+}
+#main-content:focus {
+  outline: none;
+}

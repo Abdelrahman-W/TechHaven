@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /product/
+Allow: /pc-builder
+Allow: /b2b
+Allow: /compare
+
+# Disallow private, authenticated, administrative, and transaction endpoints
+Disallow: /admin
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /profile
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /login
+Disallow: /register
+Disallow: /api/
+
+Sitemap: https://techhaven.eg/sitemap.xml

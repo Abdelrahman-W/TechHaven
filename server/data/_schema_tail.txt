@@ -1,0 +1,260 @@
+201|-- ============================================================
+202|-- WISHLIST
+203|-- ============================================================
+204|create table public.wishlist (
+205|  id uuid primary key default uuid_generate_v4(),
+206|  user_id uuid not null references public.users(id) on delete cascade,
+207|  product_id uuid not null references public.products(id) on delete cascade,
+208|  created_at timestamptz default now(),
+209|  unique (user_id, product_id)
+210|);
+211|
+212|create index idx_wishlist_user on public.wishlist(user_id);
+213|
+214|-- ============================================================
+215|-- ADDRESSES
+216|-- ============================================================
+217|create table public.addresses (
+218|  id uuid primary key default uuid_generate_v4(),
+219|  user_id uuid not null references public.users(id) on delete cascade,
+220|  label text, -- 'home', 'work', etc.
+221|  full_name text not null,
+222|  phone text not null,
+223|  city text not null,
+224|  district text,
+225|  street text not null,
+226|  building text,
+227|  floor text,
+228|  apartment text,
+229|  landmark text,
+230|  is_default boolean default false,
+231|  created_at timestamptz default now(),
+232|  updated_at timestamptz default now()
+233|);
+234|
+235|create index idx_addresses_user on public.addresses(user_id);
+236|
+237|-- ============================================================
+238|-- PAYMOB TRANSACTIONS
+239|-- ============================================================
+240|create table public.paymob_transactions (
+241|  id uuid primary key default uuid_generate_v4(),
+242|  order_id uuid not null references public.orders(id),
+243|  paymob_order_id bigint unique not null,
+244|  amount_cents int not null,
+245|  currency text default 'EGP',
+246|  integration_id bigint,
+247|  iframe_id bigint,
+248|  status text not null default 'pending' check (status in (
+249|    'pending', 'success', 'failed', 'cancelled', 'expired'
+250|  )),
+251|  payment_data jsonb,
+252|  response_data jsonb,
+253|  hmac_valid boolean,
+254|  created_at timestamptz default now(),
+255|  updated_at timestamptz default now()
+256|);
+257|
+258|create index idx_paymob_order on public.paymob_transactions(order_id);
+259|create index idx_paymob_paymob_id on public.paymob_transactions(paymob_order_id);
+260|
+261|-- ============================================================
+262|-- SELLER PROFILES (for marketplace)
+263|-- ============================================================
+264|create table public.sellers (
+265|  id uuid primary key default uuid_generate_v4(),
+266|  user_id uuid unique not null references public.users(id) on delete cascade,
+267|  company_name text not null,
+268|  company_name_en text,
+269|  tax_number text,
+270|  commercial_register text,
+271|  address text,
+272|  city text,
+273|  phone text,
+274|  email text,
+275|  website text,
+276|  description text,
+277|  logo_url text,
+278|  banner_url text,
+279|  rating decimal(3,2) default 0,
+280|  total_sales int default 0,
+281|  is_verified boolean default false,
+282|  is_active boolean default true,
+283|  commission_rate decimal(5,2) default 10.00, -- percentage
+284|  payout_schedule text default 'weekly', -- 'daily', 'weekly', 'monthly'
+285|  bank_account jsonb, -- encrypted
+286|  created_at timestamptz default now(),
+287|  updated_at timestamptz default now()
+288|);
+289|
+290|create index idx_sellers_user on public.sellers(user_id);
+291|
+292|-- ============================================================
+293|-- PRODUCT VARIANTS (for marketplace sellers)
+294|-- ============================================================
+295|create table public.product_variants (
+296|  id uuid primary key default uuid_generate_v4(),
+297|  product_id uuid not null references public.products(id) on delete cascade,
+298|  seller_id uuid not null references public.sellers(id) on delete cascade,
+299|  sku text not null,
+300|  price decimal(12,2) not null,
+301|  stock_qty int not null default 0,
+302|  is_active boolean default true,
+303|  created_at timestamptz default now(),
+304|  updated_at timestamptz default now(),
+305|  unique (product_id, seller_id, sku)
+306|);
+307|
+308|-- ============================================================
+309|-- ANALYTICS / EVENTS
+310|-- ============================================================
+311|create table public.analytics_events (
+312|  id uuid primary key default uuid_generate_v4(),
+313|  event_name text not null,
+314|  user_id uuid references public.users(id),
+315|  session_id text,
+316|  properties jsonb default '{}',
+317|  page_url text,
+318|  referrer text,
+319|  user_agent text,
+320|  ip_hash text,
+321|  created_at timestamptz default now()
+322|);
+323|
+324|create index idx_analytics_event on public.analytics_events(event_name);
+325|create index idx_analytics_user on public.analytics_events(user_id);
+326|create index idx_analytics_created on public.analytics_events(created_at desc);
+327|
+328|-- ============================================================
+329|-- RLS POLICIES (Row Level Security)
+330|-- ============================================================
+331|alter table public.users enable row level security;
+332|alter table public.categories enable row level security;
+333|alter table public.products enable row level security;
+334|alter table public.cart_items enable row level security;
+335|alter table public.orders enable row level security;
+336|alter table public.order_items enable row level security;
+337|alter table public.reviews enable row level security;
+338|alter table public.wishlist enable row level security;
+339|alter table public.addresses enable row level security;
+340|alter table public.paymob_transactions enable row level security;
+341|alter table public.sellers enable row level security;
+342|alter table public.product_variants enable row level security;
+343|alter table public.analytics_events enable row level security;
+344|
+345|-- Users: can read own, admins read all
+346|create policy "Users read own" on public.users for select using (auth.uid() = id);
+347|create policy "Admins read all users" on public.users for select using (
+348|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+349|);
+350|
+351|-- Categories: public read
+352|create policy "Public read categories" on public.categories for select using (is_active = true);
+353|
+354|-- Products: public read active
+355|create policy "Public read products" on public.products for select using (is_active = true);
+356|create policy "Admins manage products" on public.products for all using (
+357|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+358|);
+359|
+360|-- Cart: own cart only
+361|create policy "Own cart" on public.cart_items for all using (auth.uid() = user_id);
+362|
+363|-- Orders: own orders, admins all
+364|create policy "Own orders" on public.orders for select using (auth.uid() = user_id);
+365|create policy "Admins all orders" on public.orders for all using (
+366|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+367|);
+368|create policy "Users create orders" on public.orders for insert with check (auth.uid() = user_id);
+369|
+370|-- Order items: own orders
+371|create policy "Own order items" on public.order_items for select using (
+372|  exists (select 1 from public.orders where id = order_id and user_id = auth.uid())
+373|);
+374|create policy "Admins all order items" on public.order_items for all using (
+375|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+376|);
+377|
+378|-- Reviews: public read approved, users write own
+379|create policy "Public read reviews" on public.reviews for select using (is_approved = true);
+380|create policy "Own reviews" on public.reviews for all using (auth.uid() = user_id);
+381|
+382|-- Wishlist: own only
+383|create policy "Own wishlist" on public.wishlist for all using (auth.uid() = user_id);
+384|
+385|-- Addresses: own only
+386|create policy "Own addresses" on public.addresses for all using (auth.uid() = user_id);
+387|
+388|-- Paymob: own orders only
+389|create policy "Own paymob" on public.paymob_transactions for select using (
+390|  exists (select 1 from public.orders where id = order_id and user_id = auth.uid())
+391|);
+392|create policy "Admins all paymob" on public.paymob_transactions for all using (
+393|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+394|);
+395|
+396|-- Sellers: own profile, admins all
+397|create policy "Own seller" on public.sellers for all using (auth.uid() = user_id);
+398|create policy "Admins all sellers" on public.sellers for all using (
+399|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+400|);
+401|
+402|-- Product variants: sellers manage own, admins all
+403|create policy "Seller variants" on public.product_variants for all using (
+404|  exists (select 1 from public.sellers where id = seller_id and user_id = auth.uid())
+405|);
+406|create policy "Admins all variants" on public.product_variants for all using (
+407|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+408|);
+409|
+410|-- Analytics: admins only
+411|create policy "Admins analytics" on public.analytics_events for all using (
+412|  exists (select 1 from public.users where id = auth.uid() and role = 'admin')
+413|);
+414|
+415|-- ============================================================
+416|-- UPDATED_AT TRIGGERS
+417|-- ============================================================
+418|create or replace function public.set_updated_at()
+419|returns trigger language plpgsql as $$
+420|begin
+421|  new.updated_at = now();
+422|  return new;
+423|end $$;
+424|
+425|create trigger update_users_updated_at before update on public.users
+426|  for each row execute function public.set_updated_at();
+427|create trigger update_categories_updated_at before update on public.categories
+428|  for each row execute function public.set_updated_at();
+429|create trigger update_products_updated_at before update on public.products
+430|  for each row execute function public.set_updated_at();
+431|create trigger update_cart_items_updated_at before update on public.cart_items
+432|  for each row execute function public.set_updated_at();
+433|create trigger update_orders_updated_at before update on public.orders
+434|  for each row execute function public.set_updated_at();
+435|create trigger update_reviews_updated_at before update on public.reviews
+436|  for each row execute function public.set_updated_at();
+437|create trigger update_addresses_updated_at before update on public.addresses
+438|  for each row execute function public.set_updated_at();
+439|create trigger update_paymob_updated_at before update on public.paymob_transactions
+440|  for each row execute function public.set_updated_at();
+441|create trigger update_sellers_updated_at before update on public.sellers
+442|  for each row execute function public.set_updated_at();
+443|create trigger update_variants_updated_at before update on public.product_variants
+444|  for each row execute function public.set_updated_at();
+445|
+446|-- ============================================================
+447|-- SEED DATA (Categories)
+448|-- ============================================================
+449|insert into public.categories (slug, name, name_en, icon, description, sort_order) values
+450|  ('gpu', 'كروت الرسوميات', 'GPU', '🎮', 'كروت الشاشة للألعاب والتصميم', 1),
+451|  ('cpu', 'المعالجات', 'CPU', '⚙️', 'البروسيسورات للحواسيب', 2),
+452|  ('ram', 'الذاكرة العشوائية', 'RAM', '⚡', 'الرامات بجميع السرعات', 3),
+453|  ('storage', 'التخزين', 'Storage', '💾', 'SSD, HDD, NVMe', 4),
+454|  ('motherboard', 'اللوحات الأم', 'Motherboard', '🧩', 'لوحات الأم لجميع المعالجات', 5),
+455|  ('psu', 'وحدات الطاقة', 'PSU', '🔌', 'باور سبلاي بجميع القدرات', 6),
+456|  ('case', 'الهيكل', 'Case', '🖥️', 'كيسات الكمبيوتر', 7),
+457|  ('cooling', 'التبريد', 'Cooling', '❄️', 'مروحات، مبردات مائية', 8),
+458|  ('peripherals', 'الملحقات', 'Peripherals', '⌨️', 'لوحات مفاتيح، فئران، شاشات', 9),
+459|  ('network', 'الشبكات', 'Network', '🌐', 'راوترات، كروت شبكة', 10)
+460|on conflict (slug) do nothing;
