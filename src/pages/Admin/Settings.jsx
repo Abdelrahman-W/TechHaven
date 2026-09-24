@@ -52,6 +52,8 @@ export default function Settings() {
   const [showWhatsappToken, setShowWhatsappToken] = useState(false);
   const [showSmtpPass, setShowSmtpPass] = useState(false);
   const [copiedItem, setCopiedItem] = useState(null);
+  const [showGoogleSecret, setShowGoogleSecret] = useState(false);
+  const [showFacebookSecret, setShowFacebookSecret] = useState(false);
 
   // Paymob connection test state
   const [testingPaymob, setTestingPaymob] = useState(false);
@@ -121,6 +123,13 @@ export default function Settings() {
     meta_pixel_id: '',
     gtm_id: '',
     tiktok_pixel_id: '',
+    // Social Login OAuth Configuration (Future Ready - Inactive)
+    google_oauth_enabled: false,
+    google_client_id: '',
+    google_client_secret: '',
+    facebook_oauth_enabled: false,
+    facebook_app_id: '',
+    facebook_app_secret: '',
     ...(globalSettings || {}),
   }));
 
@@ -224,9 +233,10 @@ export default function Settings() {
 
   const tabs = [
     { id: 'identity', label: 'هوية المتجر والبيانات', icon: Building },
-    { id: 'shipping', label: 'الشحن واللوجستيات', icon: Truck },
-    { id: 'payments', label: 'بوابات الدفع والمحافظ', icon: CreditCard },
-    { id: 'integrations', label: 'مركز الربط والتكاملات', icon: Share2 },
+    { id: 'shipping', label: 'الشحن والتوصيل', icon: Truck },
+    { id: 'payments', label: 'بوابات وطرق الدفع', icon: CreditCard },
+    { id: 'social', label: 'تسجيل الدخول الاجتماعي (OAuth)', icon: Globe },
+    { id: 'integrations', label: 'الربط الخارجي والسحابة', icon: Share2 },
     { id: 'security', label: 'الأمان والتحكم بالنظام', icon: ShieldCheck },
   ];
 
@@ -1223,6 +1233,188 @@ export default function Settings() {
                         />
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════
+                TAB: SOCIAL LOGIN OAUTH CONFIGURATION (Future Ready - Auth Inactive)
+               ══════════════════════════════════════════════════ */}
+            {activeTab === 'social' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
+                  <h3 style={{ margin: '0 0 6px', color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Globe size={22} color="var(--primary)" />
+                    إعداد وتجهيز موفري تسجيل الدخول الاجتماعي (Social Login / OAuth)
+                  </h3>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+                    تجهيز وتخزين بيانات الاعتماد الرسمية لـ Google و Facebook لاستخدامها مستقبلاً.
+                  </p>
+                </div>
+
+                {/* Status Notice Banner */}
+                <div
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    border: '1px solid rgba(245, 158, 11, 0.35)',
+                    borderRadius: 12,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                  }}
+                >
+                  <AlertCircle size={22} color="#F59E0B" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div>
+                    <div style={{ fontWeight: 800, color: '#F59E0B', fontSize: '0.95rem', marginBottom: 4 }}>
+                      وضع الإعداد والتجهيز فقط (Configuration Only — Social Login is not active yet)
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                      تسجيل الدخول الاجتماعي عبر Google و Facebook غير مفعّل للمتسوقين في الواجهة الأمامية حالياً لضمان أعلى معايير الخصوصية وعزل الحسابات. يمكنك إدخال وتخزين بيانات الـ OAuth Client ID و Secret بشكل آمن لتكون المنصة جاهزة عند تفعيلها مستقبلاً.
+                    </div>
+                  </div>
+                </div>
+
+                {/* 1. Google OAuth Provider Card */}
+                <div className="card" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+                        🌐
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 4px', color: '#FFF', fontSize: '1.05rem', fontWeight: 800 }}>Google OAuth 2.0</h4>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>تسجيل الدخول باستخدام حساب Google (Gmail / Google Workspace)</span>
+                      </div>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', padding: '6px 14px', borderRadius: 20, border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '0.84rem', fontWeight: 700, color: settings.google_oauth_enabled ? 'var(--primary)' : 'var(--text-muted)' }}>
+                        {settings.google_oauth_enabled ? 'مُفعّل في الإعدادات' : 'معطّل'}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(settings.google_oauth_enabled)}
+                        onChange={(e) => handleChange('google_oauth_enabled', e.target.checked)}
+                        style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                      />
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 16 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                        Google Client ID:
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.google_client_id || ''}
+                        onChange={(e) => handleChange('google_client_id', e.target.value)}
+                        placeholder="مثال: 1234567890-abc123xyz.apps.googleusercontent.com"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', color: '#FFF', fontSize: '0.88rem' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                        Google Client Secret:
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showGoogleSecret ? 'text' : 'password'}
+                          value={settings.google_client_secret || ''}
+                          onChange={(e) => handleChange('google_client_secret', e.target.value)}
+                          placeholder="GOCSPX-xxxxxxxxxxxxxxxxxxxx"
+                          style={{ width: '100%', padding: '10px 14px', paddingInlineEnd: 40, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', color: '#FFF', fontSize: '0.88rem' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowGoogleSecret(!showGoogleSecret)}
+                          style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [typeof document !== 'undefined' && document.dir === 'ltr' ? 'right' : 'left']: 10, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                        >
+                          {showGoogleSecret ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'rgba(0, 0, 0, 0.25)', padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <span>رابط إعادة التوجيه المعتمد (Authorized Redirect URI): <code>{typeof window !== 'undefined' ? `${window.location.origin}/api/auth/google/callback` : 'https://techhaven.eg/api/auth/google/callback'}</code></span>
+                    <button type="button" onClick={() => handleCopy(`${typeof window !== 'undefined' ? window.location.origin : 'https://techhaven.eg'}/api/auth/google/callback`, 'googleRedirect')} className="btn btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', fontSize: '0.75rem', background: 'rgba(255, 255, 255, 0.08)' }}>
+                      {copiedItem === 'googleRedirect' ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+                      <span>نسخ الرابط</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Facebook / Meta OAuth Provider Card */}
+                <div className="card" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(24, 119, 242, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
+                        📘
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 4px', color: '#FFF', fontSize: '1.05rem', fontWeight: 800 }}>Facebook / Meta Login</h4>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>تسجيل الدخول باستخدام حساب Facebook / Meta Graph API</span>
+                      </div>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', padding: '6px 14px', borderRadius: 20, border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: '0.84rem', fontWeight: 700, color: settings.facebook_oauth_enabled ? 'var(--primary)' : 'var(--text-muted)' }}>
+                        {settings.facebook_oauth_enabled ? 'مُفعّل في الإعدادات' : 'معطّل'}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(settings.facebook_oauth_enabled)}
+                        onChange={(e) => handleChange('facebook_oauth_enabled', e.target.checked)}
+                        style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                      />
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 16 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                        Meta App ID:
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.facebook_app_id || ''}
+                        onChange={(e) => handleChange('facebook_app_id', e.target.value)}
+                        placeholder="مثال: 987654321012345"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', color: '#FFF', fontSize: '0.88rem' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                        Meta App Secret:
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showFacebookSecret ? 'text' : 'password'}
+                          value={settings.facebook_app_secret || ''}
+                          onChange={(e) => handleChange('facebook_app_secret', e.target.value)}
+                          placeholder="••••••••••••••••••••••••"
+                          style={{ width: '100%', padding: '10px 14px', paddingInlineEnd: 40, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', color: '#FFF', fontSize: '0.88rem' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowFacebookSecret(!showFacebookSecret)}
+                          style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [typeof document !== 'undefined' && document.dir === 'ltr' ? 'right' : 'left']: 10, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                        >
+                          {showFacebookSecret ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'rgba(0, 0, 0, 0.25)', padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <span>رابط إعادة التوجيه المعتمد (Authorized Redirect URI): <code>{typeof window !== 'undefined' ? `${window.location.origin}/api/auth/facebook/callback` : 'https://techhaven.eg/api/auth/facebook/callback'}</code></span>
+                    <button type="button" onClick={() => handleCopy(`${typeof window !== 'undefined' ? window.location.origin : 'https://techhaven.eg'}/api/auth/facebook/callback`, 'fbRedirect')} className="btn btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', fontSize: '0.75rem', background: 'rgba(255, 255, 255, 0.08)' }}>
+                      {copiedItem === 'fbRedirect' ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+                      <span>نسخ الرابط</span>
+                    </button>
                   </div>
                 </div>
               </div>

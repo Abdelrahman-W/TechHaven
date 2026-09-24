@@ -1743,6 +1743,13 @@ export const db = {
       meta_pixel_id: '',
       gtm_id: '',
       tiktok_pixel_id: '',
+      // Social Login OAuth Configuration (Future Ready - Auth Inactive)
+      google_oauth_enabled: false,
+      google_client_id: '',
+      google_client_secret: '',
+      facebook_oauth_enabled: false,
+      facebook_app_id: '',
+      facebook_app_secret: '',
     };
 
     if (!supabaseUrl) {
