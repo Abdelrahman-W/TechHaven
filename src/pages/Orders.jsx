@@ -1,53 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShieldAlert } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
-const SAMPLE_ORDERS = [
-  {
-    id: 'ORD-2026-8941',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    status: 'shipped', // 'pending' | 'confirmed' | 'shipped' | 'delivered'
-    status_label_ar: 'تم الشحن مع مندوب التوصيل',
-    status_label_en: 'Out for delivery with courier',
-    estimated_delivery: 'خلال 24 ساعة',
-    total: 98500,
-    items: [
-      {
-        id: 'prod-gpu-1',
-        name: 'MSI GeForce RTX 4090 SUPRIM X 24GB GDDR6X',
-        price: 98500,
-        quantity: 1,
-        thumbnail: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=300&auto=format&fit=crop&q=80',
-      },
-    ],
-  },
-  {
-    id: 'ORD-2026-7219',
-    created_at: new Date(Date.now() - 86400000 * 14).toISOString(),
-    status: 'delivered',
-    status_label_ar: 'تم التوصيل بنجاح',
-    status_label_en: 'Delivered successfully',
-    delivered_date: '24 أغسطس 2026',
-    total: 13900,
-    items: [
-      {
-        id: 'prod-cool-1',
-        name: 'Corsair iCUE LINK H150i LCD 360mm AIO Liquid Cooler',
-        price: 13900,
-        quantity: 1,
-        thumbnail: 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=300&auto=format&fit=crop&q=80',
-      },
-    ],
-  },
-];
-
 export default function Orders() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { isRtl, t } = useLanguage();
-  const [orders, setOrders] = useState(SAMPLE_ORDERS);
+  const [orders, setOrders] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(false);
 
@@ -63,11 +24,13 @@ export default function Orders() {
       setLoading(true);
       api.getOrders()
         .then((res) => {
-          const data = res.data || res.orders || [];
-          if (data.length > 0) setOrders(data);
+          const data = res.data || res.orders || (Array.isArray(res) ? res : []);
+          setOrders(Array.isArray(data) ? data : []);
         })
-        .catch(() => {})
+        .catch(() => setOrders([]))
         .finally(() => setLoading(false));
+    } else {
+      setOrders([]);
     }
   }, [user]);
 

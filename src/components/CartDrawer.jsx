@@ -237,6 +237,7 @@ export default function CartDrawer() {
                         <Link
                           to={`/product/${itemId}`}
                           onClick={() => setOpen(false)}
+                          title={itemName}
                           style={{
                             margin: '0 0 var(--space-1)',
                             fontSize: 'var(--text-sm)',

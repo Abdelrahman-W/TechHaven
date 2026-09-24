@@ -85,7 +85,7 @@ export default function MobileBottomNav() {
           <div className="th-bottom-nav-icon-wrap" style={{ position: 'relative' }}>
             <ShoppingCart size={20} />
             {cartCount > 0 && (
-              <span className="th-bottom-nav-badge">
+              <span key={cartCount} className="th-bottom-nav-badge apple-scale-in">
                 {cartCount > 99 ? '99+' : cartCount}
               </span>
             )}

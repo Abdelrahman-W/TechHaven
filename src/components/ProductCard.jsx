@@ -169,6 +169,7 @@ export default function ProductCard({ product }) {
         {/* ── Quick Wishlist Heart Icon ─────────── */}
         <button
           onClick={handleWishlist}
+          aria-pressed={isWishlisted}
           style={{
             position: 'absolute',
             top: 10,
@@ -187,7 +188,7 @@ export default function ProductCard({ product }) {
             transition: 'all 0.15s ease',
           }}
           title={isWishlisted ? (isRtl ? 'إزالة من المفضلة' : 'Remove from Wishlist') : (isRtl ? 'إضافة للمفضلة' : 'Add to Wishlist')}
-          aria-label="Wishlist"
+          aria-label={isWishlisted ? (isRtl ? 'إزالة من قائمة المفضلة' : 'Remove from Wishlist') : (isRtl ? 'إضافة إلى قائمة المفضلة' : 'Add to Wishlist')}
         >
           <Heart size={15} fill={isWishlisted ? '#EF4444' : 'none'} />
         </button>

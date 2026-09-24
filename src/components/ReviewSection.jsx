@@ -13,6 +13,7 @@ const ReviewSection = ({ productId }) => {
   const [comment, setComment] = useState('');
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -117,17 +118,31 @@ const ReviewSection = ({ productId }) => {
         ) : reviews.length === 0 ? (
           <p style={{ color: 'var(--text-muted)' }}>{t('reviews_no_reviews')}</p>
         ) : (
-          reviews.map((item, idx) => (
-            <div key={item.id || idx} className="card" style={{ marginBottom: 'var(--space-4)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-                <strong>{item.user_name || item.user?.name || item.userName || (isRtl ? `مستخدم ${idx + 1}` : `User ${idx + 1}`)}</strong>
-                <div className="rating-stars">
-                  {'★'.repeat(Math.max(1, Math.min(5, Number(item.rating) || 5)))}{'☆'.repeat(Math.max(0, 5 - (Number(item.rating) || 5)))}
+          <>
+            {reviews.slice(0, visibleCount).map((item, idx) => (
+              <div key={item.id || idx} className="card" style={{ marginBottom: 'var(--space-4)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+                  <strong>{item.user_name || item.user?.name || item.userName || (isRtl ? `مستخدم ${idx + 1}` : `User ${idx + 1}`)}</strong>
+                  <div className="rating-stars">
+                    {'★'.repeat(Math.max(1, Math.min(5, Number(item.rating) || 5)))}{'☆'.repeat(Math.max(0, 5 - (Number(item.rating) || 5)))}
+                  </div>
                 </div>
+                <p>{item.comment}</p>
               </div>
-              <p>{item.comment}</p>
-            </div>
-          ))
+            ))}
+            {reviews.length > visibleCount && (
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + 5)}
+                className="btn btn-secondary btn-apple-tactile"
+                style={{ width: '100%', marginTop: 'var(--space-2)', padding: '10px', fontWeight: 700 }}
+              >
+                {isRtl
+                  ? `عرض المزيد من التقييمات (متبقي ${reviews.length - visibleCount})`
+                  : `Load More Reviews (${reviews.length - visibleCount} remaining)`}
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

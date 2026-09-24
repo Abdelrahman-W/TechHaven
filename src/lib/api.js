@@ -163,6 +163,13 @@ export const api = {
     });
   },
 
+  async bulkUpdateAdminB2BStatus(ids, status, adminNotes = '') {
+    return fetchAPI('/b2b/bulk-status', {
+      method: 'POST',
+      body: JSON.stringify({ ids, status, admin_notes: adminNotes }),
+    });
+  },
+
   // ── Admin ──
   async getAdminStats() {
     return fetchAPI('/admin/stats');

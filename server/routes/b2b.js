@@ -83,4 +83,33 @@ router.put('/:id/status', requireAuth, requireAdmin, async (req, res, next) => {
   }
 });
 
+// ── POST /api/b2b/bulk-status (Admin Only) ────────────────
+router.post('/bulk-status', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const { ids, status, admin_notes } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'يرجى تحديد طلب واحد على الأقل', code: 'INVALID_IDS' });
+    }
+    const allowed = ['new', 'pending', 'quoted', 'contracted', 'closed', 'cancelled'];
+    if (status && !allowed.includes(status)) {
+      return res.status(400).json({ error: 'حالة غير صالحة', code: 'INVALID_STATUS' });
+    }
+    let updatedCount = 0;
+    for (const reqId of ids) {
+      const resUpdate = await db.updateB2BRequest(reqId, {
+        ...(status ? { status } : {}),
+        ...(admin_notes !== undefined ? { admin_notes } : {}),
+      });
+      if (resUpdate) updatedCount++;
+    }
+    res.json({
+      success: true,
+      message: `تم تحديث حالة ${updatedCount} طلب بنجاح`,
+      data: { updatedCount },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

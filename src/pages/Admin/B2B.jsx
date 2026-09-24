@@ -36,6 +36,9 @@ export default function AdminB2B() {
   const [selectedReq, setSelectedReq] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [adminNoteInput, setAdminNoteInput] = useState('');
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkStatus, setBulkStatus] = useState('quoted');
+  const [bulkLoading, setBulkLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (msg) => {
@@ -73,6 +76,36 @@ export default function AdminB2B() {
       alert(err.message || 'فشل تحديث حالة الطلب');
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filtered.length && filtered.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtered.map((r) => r.id));
+    }
+  };
+
+  const toggleSelectRow = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const handleBulkStatusSubmit = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`هل أنت متأكد من تغيير حالة ${selectedIds.length} طلب إلى "${B2B_STATUS_CONFIG[bulkStatus]?.label || bulkStatus}" دفعة واحدة؟`)) {
+      return;
+    }
+    setBulkLoading(true);
+    try {
+      await api.bulkUpdateAdminB2BStatus(selectedIds, bulkStatus, 'تحديث جماعي بواسطة الإدارة');
+      showToast(`تم تحديث حالة ${selectedIds.length} طلب بنجاح!`);
+      setSelectedIds([]);
+      fetchRequests();
+    } catch (err) {
+      alert(err.message || 'فشل التحديث الجماعي');
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -198,6 +231,49 @@ export default function AdminB2B() {
         </div>
       </div>
 
+      {/* ── Floating / Inline Bulk Action Bar ───────────────── */}
+      {selectedIds.length > 0 && (
+        <div
+          className="card"
+          style={{
+            background: 'rgba(255, 94, 20, 0.12)',
+            border: '1px solid var(--primary)',
+            borderRadius: 12,
+            padding: '12px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, color: '#FFF' }}>
+            <CheckCircle2 size={18} color="var(--primary)" />
+            <span>تم تحديد <strong>{selectedIds.length}</strong> طلب من طلبات الشركات</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>تغيير الحالة المحددة إلى:</span>
+            <select
+              value={bulkStatus}
+              onChange={(e) => setBulkStatus(e.target.value)}
+              style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: '#FFF', fontWeight: 700 }}
+            >
+              <option value="pending">قيد الدراسة</option>
+              <option value="quoted">تم إرسال العرض</option>
+              <option value="contracted">تم التعاقد والتوريد</option>
+              <option value="closed">مكتمل ومغلق</option>
+              <option value="cancelled">ملغي</option>
+            </select>
+            <button type="button" onClick={handleBulkStatusSubmit} disabled={bulkLoading} className="btn btn-sm btn-primary btn-apple-tactile" style={{ padding: '6px 16px', fontWeight: 800 }}>
+              {bulkLoading ? 'جارٍ التحديث...' : 'تطبيق على المحدد'}
+            </button>
+            <button type="button" onClick={() => setSelectedIds([])} className="btn btn-sm btn-ghost btn-apple-tactile" style={{ padding: '6px 12px' }}>إلغاء</button>
+          </div>
+        </div>
+      )}
+
       {/* ── Table of Inquiries ───────────────────────────────── */}
       <div
         className="card"
@@ -224,6 +300,9 @@ export default function AdminB2B() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                  <th style={{ width: 44, padding: '14px 12px', textAlign: 'center' }}>
+                    <input type="checkbox" checked={selectedIds.length > 0 && selectedIds.length === filtered.length} onChange={toggleSelectAll} style={{ cursor: 'pointer', accentColor: 'var(--primary)' }} />
+                  </th>
                   <th style={{ padding: '14px 18px', fontWeight: 700 }}>رقم المرجع</th>
                   <th style={{ padding: '14px 18px', fontWeight: 700 }}>الشركة / المؤسسة</th>
                   <th style={{ padding: '14px 18px', fontWeight: 700 }}>المسؤول والتواصل</th>
@@ -239,6 +318,9 @@ export default function AdminB2B() {
                   const st = B2B_STATUS_CONFIG[reqItem.status] || B2B_STATUS_CONFIG.new;
                   return (
                     <tr key={reqItem.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '14px 12px', textAlign: 'center' }}>
+                        <input type="checkbox" checked={selectedIds.includes(reqItem.id)} onChange={() => toggleSelectRow(reqItem.id)} style={{ cursor: 'pointer', accentColor: 'var(--primary)' }} />
+                      </td>
                       <td style={{ padding: '14px 18px', fontWeight: 800, color: 'var(--primary)' }}>
                         {reqItem.quote_ref || reqItem.id}
                       </td>

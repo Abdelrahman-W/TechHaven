@@ -5,7 +5,6 @@ import {
   Truck,
   CreditCard,
   Smartphone,
-  Banknote,
   CheckCircle2,
   PackageCheck,
   AlertCircle,
@@ -113,8 +112,27 @@ export default function Checkout() {
         notes: form.notes,
       });
 
+      let paymobData = null;
+      if (payment === 'card') {
+        try {
+          const paymobRes = await api.initiatePaymobPayment({
+            order_id: res.data?.id || res.id,
+            customer: {
+              name: form.fullName,
+              phone: form.phone,
+              email: form.email,
+              address: form.address,
+              city: shippingCity,
+            }
+          });
+          paymobData = paymobRes?.data || null;
+        } catch (payErr) {
+          console.warn('Paymob session init note:', payErr.message);
+        }
+      }
+
       if (clearCart) clearCart();
-      setSuccess(res.data || res);
+      setSuccess({ ...(res.data || res), paymobData });
     } catch (err) {
       setError(err.message || (isRtl ? 'تعذر إتمام الطلب، برجاء المحاولة مرة أخرى.' : 'Unable to complete order. Please try again.'));
     } finally {
@@ -188,6 +206,42 @@ export default function Checkout() {
                   {payment === 'card' && (isRtl ? 'بطاقة بنكية إلكترونية' : 'Credit / Debit Card')}
                 </span>
               </div>
+              {payment === 'card' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>
+                    {isRtl ? 'حالة السداد الإلكتروني:' : 'Payment Status:'}
+                  </span>
+                  <span style={{ fontWeight: 700, color: '#F59E0B' }}>
+                    {isRtl ? 'قيد المتابعة / بانتظار التأكيد' : 'Pending Confirmation'}
+                  </span>
+                </div>
+              )}
+              {payment === 'instapay' && (
+                <div style={{ marginTop: 'var(--space-3)', padding: '10px 14px', background: 'rgba(255, 94, 20, 0.08)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255, 94, 20, 0.2)', fontSize: '0.8rem' }}>
+                  <strong style={{ display: 'block', color: 'var(--brand-orange)', marginBottom: 4 }}>
+                    {isRtl ? 'بيانات التحويل عبر المحافظ / انستاباي:' : 'InstaPay / Wallet Transfer Info:'}
+                  </strong>
+                  <div>{isRtl ? 'رقم المحفظة / فودافون كاش:' : 'Wallet Number:'} <strong style={{ color: '#fff' }}>{settings?.vodafone_cash_phone || '01012345678'}</strong></div>
+                  {settings?.instapay_address && <div>{isRtl ? 'عنوان انستاباي:' : 'InstaPay IPA:'} <strong style={{ color: '#fff' }}>{settings.instapay_address}</strong></div>}
+                </div>
+              )}
+              {payment === 'card' && success?.paymobData?.payment_url && (
+                <div style={{ marginTop: 'var(--space-4)', textAlign: 'center' }}>
+                  <a
+                    href={success.paymobData.payment_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary btn-apple-tactile"
+                    style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <CreditCard size={18} />
+                    <span>{isRtl ? 'إتمام الدفع عبر بوابة Paymob 💳' : 'Complete Payment via Paymob 💳'}</span>
+                  </a>
+                  <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: 6, fontSize: '0.74rem' }}>
+                    {isRtl ? 'سيتم فتح نافذة آمنة ومعتمدة من البنك المركزي لإتمام الدفع.' : 'A secure PCI-DSS compliant checkout window will open.'}
+                  </small>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>
                   {isRtl ? 'موعد التسليم المتوقع:' : 'Estimated Delivery:'}
