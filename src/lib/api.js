@@ -152,6 +152,17 @@ export const api = {
     return this.submitB2BQuote(data);
   },
 
+  async getAdminB2BRequests() {
+    return fetchAPI('/b2b');
+  },
+
+  async updateAdminB2BStatus(id, status, adminNotes = '') {
+    return fetchAPI(`/b2b/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, admin_notes: adminNotes }),
+    });
+  },
+
   // ── Admin ──
   async getAdminStats() {
     return fetchAPI('/admin/stats');
@@ -203,6 +214,13 @@ export const api = {
     return fetchAPI(`/products/${productId}`, {
       method: 'PUT',
       body: JSON.stringify(productData),
+    });
+  },
+
+  async updateProductStock(productId, stockQty, reason = '') {
+    return fetchAPI(`/products/${productId}/stock`, {
+      method: 'PUT',
+      body: JSON.stringify({ stock_qty: stockQty, reason }),
     });
   },
 
@@ -261,6 +279,10 @@ export const api = {
     return fetchAPI(`/reviews/${reviewId}`, {
       method: 'DELETE',
     });
+  },
+
+  async getAdminReviews() {
+    return fetchAPI('/reviews');
   },
 
   // ── Payments & Paymob ──

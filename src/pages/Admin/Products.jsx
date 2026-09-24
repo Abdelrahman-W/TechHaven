@@ -79,6 +79,22 @@ export default function Products() {
     fetchProducts();
   }, []);
 
+  const handleQuickStock = async (productId, delta) => {
+    const p = products.find((prod) => prod.id === productId);
+    if (!p) return;
+    const newQty = Math.max(0, (p.stock_qty ?? 0) + delta);
+    // Optimistic UI update
+    setProducts((prev) =>
+      prev.map((prod) => (prod.id === productId ? { ...prod, stock_qty: newQty, stock: newQty } : prod))
+    );
+    try {
+      await api.updateProductStock(productId, newQty, `تعديل سريع للمخزون (${delta > 0 ? '+' + delta : delta})`);
+    } catch (err) {
+      alert(err.message || 'فشل تحديث المخزون');
+      fetchProducts();
+    }
+  };
+
   const openAddModal = () => {
     setEditingProduct(null);
     setFormData({
@@ -372,9 +388,23 @@ export default function Products() {
 
                       {/* Stock */}
                       <td style={{ padding: '12px 18px', fontSize: 'var(--text-xs)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                        <span style={{ color: isOutOfStock ? '#EF4444' : stock < 5 ? '#F59E0B' : '#10B981' }}>
-                          {stock} قطعة
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleQuickStock(p.id, -1)}
+                            style={{ padding: '2px 7px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: '#FFF', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800 }}
+                            title="إنقاص المخزون بمقدار 1"
+                          >-</button>
+                          <span style={{ color: isOutOfStock ? '#EF4444' : stock < 5 ? '#F59E0B' : '#10B981', minWidth: 45, textAlign: 'center' }}>
+                            {stock}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleQuickStock(p.id, 1)}
+                            style={{ padding: '2px 7px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: '#FFF', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800 }}
+                            title="زيادة المخزون بمقدار 1"
+                          >+</button>
+                        </div>
                       </td>
 
                       {/* Status */}

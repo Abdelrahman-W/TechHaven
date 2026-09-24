@@ -6,6 +6,19 @@ import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
+// ── GET /api/reviews (Admin Only: All Reviews Across Catalog) ─
+router.get('/', requireAuth, async (req, res, next) => {
+  try {
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'غير مصرح لك', code: 'FORBIDDEN' });
+    }
+    const reviews = await db.getAllReviews();
+    res.json({ data: reviews });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── GET /api/reviews/product/:productId ─────────────────
 router.get('/product/:productId', cacheMiddleware(300), async (req, res, next) => {
   try {

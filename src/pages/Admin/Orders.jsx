@@ -14,6 +14,8 @@ import {
   Calendar,
   DollarSign,
   Package,
+  Download,
+  Printer,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 
@@ -72,6 +74,68 @@ export default function Orders() {
     return matchesStatus && matchesSearch;
   });
 
+  const handleExportCSV = () => {
+    if (!filtered || filtered.length === 0) {
+      alert('لا توجد طلبات لتصديرها حالياً.');
+      return;
+    }
+
+    const headers = [
+      'رقم الطلب (Reference)',
+      'تاريخ الطلب',
+      'اسم العميل',
+      'رقم الهاتف',
+      'المحافظة',
+      'عنوان التوصيل',
+      'طريقة الدفع',
+      'حالة الطلب',
+      'المجموع الفرعي (ج.م)',
+      'تكلفة الشحن (ج.م)',
+      'الإجمالي (ج.م)',
+      'المنتجات والكميات',
+      'ملاحظات العميل'
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === undefined || val === null) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = filtered.map((o) => {
+      const itemsStr = (o.items || o.order_items || [])
+        .map((it) => `${it.product_name || 'منتج'} (الكمية: ${it.quantity || 1})`)
+        .join(' | ');
+
+      return [
+        escapeCsv(o.reference || o.id),
+        escapeCsv(o.created_at ? new Date(o.created_at).toLocaleDateString('ar-EG') : ''),
+        escapeCsv(o.customer_name || ''),
+        escapeCsv(o.customer_phone || ''),
+        escapeCsv(o.customer_city || ''),
+        escapeCsv(o.customer_address || ''),
+        escapeCsv(o.payment_method === 'cod' ? 'الدفع عند الاستلام' : o.payment_method || 'أونلاين'),
+        escapeCsv(STATUS_CONFIG[o.status]?.label || o.status || 'تم التأكيد'),
+        escapeCsv(o.subtotal || 0),
+        escapeCsv(o.shipping_cost || 0),
+        escapeCsv(o.total || 0),
+        escapeCsv(itemsStr),
+        escapeCsv(o.customer_notes || o.notes || '')
+      ].join(',');
+    });
+
+    const csvContent = '\uFEFF' + [headers.map(escapeCsv).join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `techhaven_courier_manifest_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, direction: 'rtl' }}>
 
@@ -86,15 +150,26 @@ export default function Orders() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={fetchOrders}
-          className="btn btn-secondary btn-apple-tactile"
-          style={{ padding: '8px 16px', borderRadius: 'var(--radius-sm)', gap: 6 }}
-        >
-          <RefreshCw size={14} className={loading ? 'spin-slow' : ''} />
-          <span>تحديث الطلبات</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="btn btn-primary btn-apple-tactile"
+            style={{ padding: '8px 16px', borderRadius: 'var(--radius-sm)', gap: 6 }}
+          >
+            <Download size={14} />
+            <span>تصدير كشف الشحن (CSV)</span>
+          </button>
+          <button
+            type="button"
+            onClick={fetchOrders}
+            className="btn btn-secondary btn-apple-tactile"
+            style={{ padding: '8px 16px', borderRadius: 'var(--radius-sm)', gap: 6 }}
+          >
+            <RefreshCw size={14} className={loading ? 'spin-slow' : ''} />
+            <span>تحديث الطلبات</span>
+          </button>
+        </div>
       </div>
 
       {/* ── Filters & Search ─────────────────────────────────── */}
@@ -343,13 +418,25 @@ export default function Orders() {
                   تاريخ الطلب: {new Date(selectedOrder.created_at).toLocaleString('ar-EG')}
                 </small>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedOrder(null)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-              >
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn btn-sm btn-secondary btn-apple-tactile"
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: '0.78rem' }}
+                  title="طباعة الفاتورة وبوليصة الشحن"
+                >
+                  <Printer size={15} />
+                  <span>طباعة</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrder(null)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Customer Information */}

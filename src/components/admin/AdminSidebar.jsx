@@ -8,6 +8,7 @@ import {
   Tags,
   Building2,
   TrendingUp,
+  Star,
   Settings,
   LogOut,
   Zap,
@@ -21,7 +22,8 @@ const navItems = [
   { to: '/admin/orders', icon: ShoppingBag, label: 'الطلبات والشحن' },
   { to: '/admin/users', icon: Users, label: 'العملاء والمستخدمين' },
   { to: '/admin/categories', icon: Tags, label: 'الفئات والأقسام' },
-  { to: '/b2b', icon: Building2, label: 'خدمات الشركات B2B' },
+  { to: '/admin/b2b', icon: Building2, label: 'طلبات الشركات B2B' },
+  { to: '/admin/reviews', icon: Star, label: 'إدارة التقييمات' },
   { to: '/admin/analytics', icon: TrendingUp, label: 'التحليلات والمبيعات' },
   { to: '/admin/settings', icon: Settings, label: 'إعدادات النظام' },
 ];

@@ -41,6 +41,8 @@ const AdminUsers = React.lazy(() => import('./pages/Admin/Users'));
 const AdminCategories = React.lazy(() => import('./pages/Admin/Categories'));
 const AdminAnalytics = React.lazy(() => import('./pages/Admin/Analytics'));
 const AdminSettings = React.lazy(() => import('./pages/Admin/Settings'));
+const AdminB2B = React.lazy(() => import('./pages/Admin/B2B'));
+const AdminReviews = React.lazy(() => import('./pages/Admin/Reviews'));
 
 import NotFound from './pages/NotFound';
 
@@ -123,6 +125,8 @@ function AppLayout() {
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="settings" element={<AdminSettings />} />
+                <Route path="b2b" element={<AdminB2B />} />
+                <Route path="reviews" element={<AdminReviews />} />
               </Route>
 
               {/* Fallback */}

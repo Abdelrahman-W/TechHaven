@@ -190,6 +190,34 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res, next) => {
   }
 });
 
+// ── PUT /api/products/:id/stock (Fast Inventory Adjustment) ─
+router.put('/:id/stock', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { stock_qty } = req.body;
+    if (stock_qty === undefined || stock_qty === null || isNaN(Number(stock_qty))) {
+      return res.status(400).json({ error: 'يرجى تحديد كمية المخزون بشكل صحيح', code: 'INVALID_QUANTITY' });
+    }
+    const qty = Math.max(0, parseInt(stock_qty, 10));
+    const updated = await db.updateProduct(id, {
+      stock_qty: qty,
+      stock: qty,
+    });
+    if (!updated) {
+      return res.status(404).json({ error: 'المنتج غير موجود', code: 'NOT_FOUND' });
+    }
+    invalidateCache('/api/products', { scope: 'products' });
+    invalidateCache(`/api/products/${id}`);
+    res.json({
+      success: true,
+      message: 'تم تحديث كمية المخزون بنجاح',
+      data: { id, stock_qty: qty },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── DELETE /api/products/:id (Admin Only) ─────────────────
 router.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {

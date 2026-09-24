@@ -24,10 +24,10 @@ export default function Analytics() {
   const [period, setPeriod] = useState('30d');
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState({
-    totalRevenue: 348500,
-    totalOrders: 42,
-    totalUsers: 156,
-    totalProducts: 8,
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    totalProducts: 0,
   });
   const [revenueData, setRevenueData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
@@ -44,33 +44,26 @@ export default function Analytics() {
       ]);
 
       if (ovRes?.data) setOverview(ovRes.data);
-      if (revRes?.data && revRes.data.length > 0) {
+      if (revRes?.data && Array.isArray(revRes.data)) {
         setRevenueData(revRes.data);
       } else {
-        // High quality fallback curve for selected period
-        const days = period === '7d' ? 7 : period === '90d' ? 12 : 14;
-        const fallback = Array.from({ length: days }, (_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - (days - 1 - i));
-          return {
-            date: d.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }),
-            revenue: Math.round(18000 + Math.sin(i / 1.5) * 8500 + (i * 1200)),
-          };
-        });
-        setRevenueData(fallback);
+        setRevenueData([]);
       }
 
-      if (topRes?.data && topRes.data.length > 0) {
+      if (topRes?.data && Array.isArray(topRes.data)) {
         setTopProducts(topRes.data);
       } else {
-        setTopProducts([
-          { id: 'prod-phone', name: 'TH Phone 15 Pro Max Titanium', sold_count: 58, price: 49999, category: 'هواتف ذكية' },
-          { id: 'prod-airpods', name: 'TechHaven AirPods Pro 2', sold_count: 142, price: 8499, category: 'سماعات' },
-          { id: 'prod-laptop', name: 'TechHaven AeroBook 14 OLED', sold_count: 36, price: 34999, category: 'لابتوبات' },
-          { id: 'prod-camera', name: 'TH Capture X1 4K Camera', sold_count: 24, price: 42500, category: 'كاميرات' },
-          { id: 'prod-watch', name: 'TH Watch Ultra Titanium', sold_count: 67, price: 14999, category: 'ساعات ذكية' },
-        ]);
+        setTopProducts([]);
       }
+
+      const ordList = ordRes?.data || ordRes || [];
+      if (Array.isArray(ordList)) setOrders(ordList);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  };
 
       const ordList = ordRes?.data || ordRes || [];
       if (Array.isArray(ordList)) setOrders(ordList);
@@ -374,6 +367,13 @@ export default function Analytics() {
         </div>
 
         {/* SVG Area & Line Chart */}
+        {revenueData.length === 0 ? (
+          <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <TrendingUp size={36} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+            <div style={{ color: '#FFF', fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>لا توجد بيانات مبيعات مسجلة لهذه الفترة</div>
+            <div style={{ fontSize: '0.8rem' }}>ستظهر منحنيات وتفاصيل المبيعات اليومية تلقائياً فور تسجيل وتأكيد طلبات الشراء.</div>
+          </div>
+        ) : (
         <div style={{ width: '100%', overflowX: 'auto' }}>
           <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} style={{ width: '100%', height: 'auto', minWidth: '550px', overflow: 'visible' }}>
             <defs>
@@ -428,6 +428,7 @@ export default function Analytics() {
             ))}
           </svg>
         </div>
+        )}
       </div>
 
       {/* ── Two-Column Insights: Categories & Top Products ──── */}
@@ -493,56 +494,63 @@ export default function Analytics() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {topProducts.map((p, idx) => {
-              const revenueEst = (p.sold_count || 1) * (Number(p.price) || 0);
-              return (
-                <div
-                  key={p.id || idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        background: idx === 0 ? 'rgba(255,94,20,0.2)' : 'rgba(255,255,255,0.05)',
-                        color: idx === 0 ? 'var(--brand-orange)' : 'var(--text-muted)',
-                        fontWeight: 900,
-                        fontSize: '0.8rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      #{idx + 1}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#FFFFFF' }}>
-                        {p.name}
+            {topProducts.length === 0 ? (
+              <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Package size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+                <div style={{ color: '#FFF', fontWeight: 700, fontSize: '0.88rem' }}>لا توجد مبيعات للمنتجات حتى الآن</div>
+              </div>
+            ) : (
+              topProducts.map((p, idx) => {
+                const revenueEst = (p.sold_count || 1) * (Number(p.price) || 0);
+                return (
+                  <div
+                    key={p.id || idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: '50%',
+                          background: idx === 0 ? 'rgba(255,94,20,0.2)' : 'rgba(255,255,255,0.05)',
+                          color: idx === 0 ? 'var(--brand-orange)' : 'var(--text-muted)',
+                          fontWeight: 900,
+                          fontSize: '0.8rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        #{idx + 1}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        {p.category || 'إلكترونيات'} • تم بيع {p.sold_count || 10} قطعة
+                      <div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#FFFFFF' }}>
+                          {p.name}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {p.category || 'إلكترونيات'} • تم بيع {p.sold_count || 10} قطعة
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div style={{ textAlign: 'start' }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-orange)' }}>
-                      {revenueEst.toLocaleString('ar-EG')} ج.م
+                    <div style={{ textAlign: 'start' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-orange)' }}>
+                        {revenueEst.toLocaleString('ar-EG')} ج.م
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>

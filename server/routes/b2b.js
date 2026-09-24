@@ -57,4 +57,30 @@ router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
   }
 });
 
+// ── PUT /api/b2b/:id/status (Admin Only) ─────────────────
+router.put('/:id/status', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, admin_notes } = req.body;
+    const allowed = ['new', 'pending', 'quoted', 'contracted', 'closed', 'cancelled'];
+    if (status && !allowed.includes(status)) {
+      return res.status(400).json({ error: 'حالة غير صالحة', code: 'INVALID_STATUS' });
+    }
+    const updated = await db.updateB2BRequest(id, {
+      ...(status ? { status } : {}),
+      ...(admin_notes !== undefined ? { admin_notes } : {}),
+    });
+    if (!updated) {
+      return res.status(404).json({ error: 'طلب عرض السعر غير موجود', code: 'NOT_FOUND' });
+    }
+    res.json({
+      success: true,
+      message: 'تم تحديث حالة طلب الشركة بنجاح',
+      data: updated,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

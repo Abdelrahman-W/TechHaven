@@ -1616,6 +1616,7 @@ export const db = {
       const id = `b2b-${Date.now()}`;
       const record = { id, ...reqData, status: 'new', created_at: new Date().toISOString() };
       localStore.set(`b2b:${id}`, record);
+      saveStoreToDisk();
       return record;
     }
     const { data, error } = await supabase.from('b2b_requests').insert(reqData).select().single();
@@ -1632,6 +1633,20 @@ export const db = {
       return list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
     const { data, error } = await supabase.from('b2b_requests').select('*');
+    if (error) throw error;
+    return data;
+  },
+
+  async updateB2BRequest(id, updates) {
+    if (!supabaseUrl) {
+      const existing = localStore.get(`b2b:${id}`);
+      if (!existing) return null;
+      const updated = { ...existing, ...updates, updated_at: new Date().toISOString() };
+      localStore.set(`b2b:${id}`, updated);
+      saveStoreToDisk();
+      return updated;
+    }
+    const { data, error } = await supabase.from('b2b_requests').update(updates).eq('id', id).select().single();
     if (error) throw error;
     return data;
   },
@@ -1801,6 +1816,21 @@ export const db = {
       return reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
     const { data, error } = await supabase.from('reviews').select('*').eq('product_id', productId).order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getAllReviews() {
+    if (!supabaseUrl) {
+      const reviews = [];
+      for (const [key, val] of localStore.entries()) {
+        if (key.startsWith('review:')) {
+          reviews.push(val);
+        }
+      }
+      return reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     return data || [];
   },
