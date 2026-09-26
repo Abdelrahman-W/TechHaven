@@ -65,15 +65,6 @@ export default function Analytics() {
     }
   };
 
-      const ordList = ordRes?.data || ordRes || [];
-      if (Array.isArray(ordList)) setOrders(ordList);
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchData();
   }, [period]);
