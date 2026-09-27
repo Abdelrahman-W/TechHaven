@@ -84,6 +84,8 @@ export class ReceivingService {
     invalidateCache('/api/purchasing/orders');
     invalidateCache(`/api/purchasing/orders/${purchaseOrderId}`);
     invalidateCache('/api/purchasing/receivings');
+    invalidateCache('/api/inventory/reorder');
+    invalidateCache('/api/inventory/reorder/summary');
     if (result.items && Array.isArray(result.items)) {
       for (const item of result.items) {
         if (item.product_id) {

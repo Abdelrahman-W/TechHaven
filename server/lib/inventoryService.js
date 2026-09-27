@@ -79,6 +79,8 @@ export class InventoryService {
     invalidateCache('/api/products', { scope: 'products' });
     invalidateCache(`/api/products/${productId}`);
     invalidateCache('/api/inventory/movements');
+    invalidateCache('/api/inventory/reorder');
+    invalidateCache('/api/inventory/reorder/summary');
 
     return result;
   }

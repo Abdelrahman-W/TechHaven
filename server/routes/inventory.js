@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 import { InventoryService } from '../lib/inventoryService.js';
+import ReorderService from '../lib/reorderService.js';
 import { PERMISSIONS } from '../lib/rbac.js';
 
 const router = Router();
@@ -126,6 +127,85 @@ router.post('/adjust', requirePermission(PERMISSIONS.INVENTORY_ADJUST), async (r
         code: err.code,
         details: err.details || null
       });
+    }
+    next(err);
+  }
+});
+
+// ── Reorder Intelligence Endpoints (Batch 06) ───────────────────
+
+// ── GET /api/inventory/reorder ───────────────────────────
+router.get('/reorder', requireAnyPermission([
+  PERMISSIONS.INVENTORY_REORDER_VIEW,
+  PERMISSIONS.INVENTORY_VIEW,
+  PERMISSIONS.ADMIN_REORDER_VIEW,
+  PERMISSIONS.ADMIN_DASHBOARD_VIEW,
+]), async (req, res, next) => {
+  try {
+    const result = await ReorderService.getReorderList(req.query, req.user);
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/inventory/reorder/summary ───────────────────
+router.get('/reorder/summary', requireAnyPermission([
+  PERMISSIONS.INVENTORY_REORDER_VIEW,
+  PERMISSIONS.INVENTORY_VIEW,
+  PERMISSIONS.ADMIN_REORDER_VIEW,
+  PERMISSIONS.ADMIN_DASHBOARD_VIEW,
+]), async (req, res, next) => {
+  try {
+    const summary = await ReorderService.getReorderSummary(req.user);
+    res.json({
+      success: true,
+      data: summary,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/inventory/products/:id/reorder ──────────────
+router.get('/products/:id/reorder', requireAnyPermission([
+  PERMISSIONS.INVENTORY_REORDER_VIEW,
+  PERMISSIONS.INVENTORY_VIEW,
+  PERMISSIONS.PRODUCTS_VIEW,
+]), async (req, res, next) => {
+  try {
+    const productReorder = await ReorderService.getProductReorder(req.params.id, req.user);
+    res.json({
+      success: true,
+      data: productReorder,
+    });
+  } catch (err) {
+    if (err.code === 'PRODUCT_NOT_FOUND' || err.code === 'INVALID_PRODUCT_ID') {
+      return res.status(err.status || 404).json({ error: err.message, code: err.code });
+    }
+    next(err);
+  }
+});
+
+// ── PUT /api/inventory/products/:id/reorder-settings ─────
+router.put('/products/:id/reorder-settings', requireAnyPermission([
+  PERMISSIONS.INVENTORY_REORDER_MANAGE,
+  PERMISSIONS.INVENTORY_ADJUST,
+  PERMISSIONS.PRODUCTS_EDIT,
+]), async (req, res, next) => {
+  try {
+    const updated = await ReorderService.updateProductReorderSettings(req.params.id, req.body, req.user);
+    res.json({
+      success: true,
+      message: 'تم تحديث إعدادات إعادة الطلب بنجاح',
+      data: updated,
+    });
+  } catch (err) {
+    if (err.code && err.code.startsWith('INVALID_')) {
+      return res.status(400).json({ error: err.message, code: err.code, details: err.details || null });
     }
     next(err);
   }

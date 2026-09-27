@@ -397,6 +397,33 @@ export const api = {
     return fetchAPI(`/purchasing/receivings${qs}`);
   },
 
+  // ── Reorder Intelligence (Batch 06) ──
+  async getReorderList(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/inventory/reorder${qs}`);
+  },
+
+  async getReorderSummary() {
+    return fetchAPI('/inventory/reorder/summary');
+  },
+
+  async getProductReorder(productId) {
+    return fetchAPI(`/inventory/products/${productId}/reorder`);
+  },
+
+  async updateProductReorderSettings(productId, settings) {
+    return fetchAPI(`/inventory/products/${productId}/reorder-settings`, {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  },
+
   async deleteProduct(productId) {
     return fetchAPI(`/products/${productId}`, {
       method: 'DELETE',

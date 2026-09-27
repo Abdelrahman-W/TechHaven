@@ -28,6 +28,8 @@ export const PERMISSIONS = {
   INVENTORY_VIEW: 'inventory.view',
   INVENTORY_ADJUST: 'inventory.adjust',
   INVENTORY_MOVEMENTS: 'inventory.movements',
+  INVENTORY_REORDER_VIEW: 'inventory.reorder.view',
+  INVENTORY_REORDER_MANAGE: 'inventory.reorder.manage',
 
   // Purchasing & Procurement
   PURCHASING_VIEW: 'purchasing.view',
@@ -79,6 +81,7 @@ export const PERMISSIONS = {
   ADMIN_SETTINGS_VIEW: 'admin.settings.view',
   ADMIN_SUPPLIERS_VIEW: 'admin.suppliers.view',
   ADMIN_PURCHASING_VIEW: 'admin.purchasing.view',
+  ADMIN_REORDER_VIEW: 'admin.reorder.view',
 };
 
 export const ROLES = {
@@ -106,7 +109,7 @@ export const ROLE_DEFINITIONS = [
       'products.view', 'products.create', 'products.edit', 'products.delete',
       'categories.view', 'categories.create', 'categories.edit', 'categories.delete',
       'orders.view', 'orders.edit', 'orders.cancel', 'orders.export',
-      'inventory.view', 'inventory.adjust', 'inventory.movements',
+      'inventory.view', 'inventory.adjust', 'inventory.movements', 'inventory.reorder.view', 'inventory.reorder.manage',
       'suppliers.view', 'suppliers.create', 'suppliers.edit', 'suppliers.delete',
       'purchasing.view', 'purchasing.create', 'purchasing.edit', 'purchasing.approve', 'purchasing.cancel', 'purchasing.receive',
       'b2b.view', 'b2b.manage',
@@ -114,7 +117,7 @@ export const ROLE_DEFINITIONS = [
       'reports.sales', 'reports.profit', 'reports.inventory', 'products.cost.view', 'products.cost.manage',
       'users.view',
       'settings.view',
-      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.suppliers.view', 'admin.purchasing.view',
+      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.suppliers.view', 'admin.purchasing.view', 'admin.reorder.view',
     ],
   },
   {
@@ -124,10 +127,10 @@ export const ROLE_DEFINITIONS = [
     is_system: true,
     permissions: [
       'products.view',
-      'inventory.view', 'inventory.adjust', 'inventory.movements',
+      'inventory.view', 'inventory.adjust', 'inventory.movements', 'inventory.reorder.view', 'inventory.reorder.manage',
       'suppliers.view', 'purchasing.view', 'purchasing.create', 'purchasing.receive',
       'reports.inventory',
-      'admin.dashboard.view', 'admin.purchasing.view',
+      'admin.dashboard.view', 'admin.purchasing.view', 'admin.reorder.view',
     ],
   },
   {

@@ -38,6 +38,7 @@ const AdminDashboard = React.lazy(() => import('./pages/Admin/Dashboard'));
 const AdminProducts = React.lazy(() => import('./pages/Admin/Products'));
 const AdminInventoryLedger = React.lazy(() => import('./pages/Admin/InventoryLedger'));
 const AdminSuppliers = React.lazy(() => import('./pages/Admin/Suppliers'));
+const AdminReorderIntelligence = React.lazy(() => import('./pages/Admin/ReorderIntelligence'));
 const AdminPurchaseOrders = React.lazy(() => import('./pages/Admin/PurchaseOrders'));
 const AdminOrders = React.lazy(() => import('./pages/Admin/Orders'));
 const AdminUsers = React.lazy(() => import('./pages/Admin/Users'));
@@ -124,6 +125,7 @@ function AppLayout() {
                 <Route index element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="inventory" element={<AdminInventoryLedger />} />
+                <Route path="reorder" element={<AdminReorderIntelligence />} />
                 <Route path="suppliers" element={<AdminSuppliers />} />
                 <Route path="purchasing" element={<AdminPurchaseOrders />} />
                 <Route path="orders" element={<AdminOrders />} />

@@ -49,6 +49,9 @@ export default function Products() {
     brand: 'TechHaven',
     thumbnail: '',
     description: '',
+    reorder_enabled: false,
+    reorder_point: 5,
+    target_stock: 20,
   });
 
   // History Modal State
@@ -131,6 +134,9 @@ export default function Products() {
       specs: '',
       features: '',
       tags: '',
+      reorder_enabled: false,
+      reorder_point: 5,
+      target_stock: 20,
     });
     setFormError(null);
     setIsModalOpen(true);
@@ -152,6 +158,9 @@ export default function Products() {
       specs: typeof p.specs === 'object' ? JSON.stringify(p.specs, null, 2) : (p.specs || ''),
       features: Array.isArray(p.features) ? p.features.join('\n') : (p.features || ''),
       tags: Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || ''),
+      reorder_enabled: Boolean(p.reorder_enabled),
+      reorder_point: p.reorder_point ?? 5,
+      target_stock: p.target_stock ?? 20,
     });
     setFormError(null);
     setIsModalOpen(true);
@@ -159,12 +168,10 @@ export default function Products() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError(null);
     setSubmitting(true);
+    setFormError(null);
 
-    const allImages = [formData.thumbnail, ...(formData.images || [])].filter(Boolean);
-
-    let parsedSpecs = {};
+    let parsedSpecs = null;
     try {
       if (formData.specs) {
         if (formData.specs.trim().startsWith('{')) {
@@ -179,11 +186,16 @@ export default function Products() {
       // ignore parse errors for now
     }
 
+    const allImages = [formData.thumbnail, ...(formData.images || [])].filter(Boolean);
+
     const payload = {
       ...formData,
       price: Number(formData.price),
       old_price: formData.old_price ? Number(formData.old_price) : null,
       stock_qty: Number(formData.stock_qty),
+      reorder_enabled: Boolean(formData.reorder_enabled),
+      reorder_point: Number(formData.reorder_point || 0),
+      target_stock: Number(formData.target_stock || 0),
       images: allImages.length > 0 ? allImages : [formData.thumbnail],
       thumbnail: formData.thumbnail || allImages[0] || '',
       specs: parsedSpecs,
@@ -655,6 +667,50 @@ export default function Products() {
                     className="input"
                     style={{ fontSize: 'var(--text-xs)', padding: '10px 12px' }}
                   />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
+                    نقطة إعادة الطلب:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.reorder_point}
+                    onChange={(e) => setFormData({ ...formData, reorder_point: e.target.value })}
+                    className="input"
+                    style={{ fontSize: 'var(--text-xs)', padding: '10px 12px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
+                    المخزون المستهدف:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.target_stock}
+                    onChange={(e) => setFormData({ ...formData, target_stock: e.target.value })}
+                    className="input"
+                    style={{ fontSize: 'var(--text-xs)', padding: '10px 12px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Reorder Enabled Switch */}
+              <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 'var(--text-xs)', fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.reorder_enabled}
+                    onChange={(e) => setFormData({ ...formData, reorder_enabled: e.target.checked })}
+                    style={{ accentColor: 'var(--primary)', width: 16, height: 16 }}
+                  />
+                  <span>تفعيل تتبع ذكاء إعادة الطلب لهذا المنتج (Reorder Intelligence)</span>
+                </label>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 4 }}>
+                  عند تفعيل هذا الخيار، سيقوم النظام بتنبيه الإدارة واقتراح كمية إعادة التوريد فور وصول المخزون لنقطة إعادة الطلب أو أقل.
                 </div>
               </div>
 

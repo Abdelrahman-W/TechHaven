@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { db } from '../lib/supabase.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 import { InventoryService } from '../lib/inventoryService.js';
+import ReorderService from '../lib/reorderService.js';
 import { requireAuth, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 
 const router = Router();
@@ -279,6 +280,38 @@ router.delete('/:id', requireAuth, requirePermission('products.delete'), async (
     invalidateCache('/api/products', { scope: 'products' });
     res.json({ success: true, message: 'تم حذف المنتج بنجاح' });
   } catch (err) {
+    next(err);
+  }
+});
+
+// ── Reorder Settings Endpoints (Batch 06) ───────────────────
+router.get('/:id/reorder', requireAuth, requireAnyPermission(['inventory.reorder.view', 'inventory.view', 'products.view']), async (req, res, next) => {
+  try {
+    const productReorder = await ReorderService.getProductReorder(req.params.id, req.user);
+    res.json({
+      success: true,
+      data: productReorder,
+    });
+  } catch (err) {
+    if (err.code === 'PRODUCT_NOT_FOUND' || err.code === 'INVALID_PRODUCT_ID') {
+      return res.status(err.status || 404).json({ error: err.message, code: err.code });
+    }
+    next(err);
+  }
+});
+
+router.put('/:id/reorder-settings', requireAuth, requireAnyPermission(['inventory.reorder.manage', 'inventory.adjust', 'products.edit']), async (req, res, next) => {
+  try {
+    const updated = await ReorderService.updateProductReorderSettings(req.params.id, req.body, req.user);
+    res.json({
+      success: true,
+      message: 'تم تحديث إعدادات إعادة الطلب بنجاح',
+      data: updated,
+    });
+  } catch (err) {
+    if (err.code && err.code.startsWith('INVALID_')) {
+      return res.status(400).json({ error: err.message, code: err.code, details: err.details || null });
+    }
     next(err);
   }
 });

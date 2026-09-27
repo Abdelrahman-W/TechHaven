@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import {
   History,
   TrendingUp,
@@ -17,7 +18,8 @@ import {
   ArrowRight,
   ArrowLeft,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sliders,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 
@@ -182,6 +184,26 @@ export default function InventoryLedger() {
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             تحديث
           </button>
+
+          <Link
+            to="/admin/reorder"
+            style={{
+              padding: '9px 16px',
+              borderRadius: 8,
+              background: 'rgba(56, 189, 248, 0.12)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              color: '#38BDF8',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: '0.85rem',
+              fontWeight: 700,
+            }}
+          >
+            <Sliders size={15} />
+            ذكاء إعادة الطلب
+          </Link>
 
           <button
             type="button"
