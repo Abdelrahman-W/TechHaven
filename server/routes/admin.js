@@ -1,15 +1,16 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
 import bcrypt from 'bcryptjs';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requireAdmin, requirePermission, requireAnyPermission } from '../middleware/auth.js';
+import { PERMISSIONS } from '../lib/rbac.js';
 
 const router = Router();
 
-// Protect ALL admin endpoints: strictly requires valid JWT with role === 'admin'
+// Base protection: strictly requires valid JWT with staff/admin role
 router.use(requireAuth, requireAdmin);
 
 // ── GET /api/admin/stats ────────────────────────────────
-router.get('/stats', async (req, res, next) => {
+router.get('/stats', requireAnyPermission([PERMISSIONS.ADMIN_DASHBOARD_VIEW, PERMISSIONS.REPORTS_SALES]), async (req, res, next) => {
   try {
     const [products, orderStats, b2b, users] = await Promise.all([
       db.getAllProducts(),
@@ -42,7 +43,7 @@ router.get('/stats', async (req, res, next) => {
 });
 
 // ── GET /api/admin/users ────────────────────────────────
-router.get('/users', async (req, res, next) => {
+router.get('/users', requireAnyPermission([PERMISSIONS.ADMIN_USERS_VIEW, PERMISSIONS.USERS_VIEW]), async (req, res, next) => {
   try {
     const users = await db.getAllUsers();
     // Exclude password hashes
@@ -62,7 +63,7 @@ router.get('/users', async (req, res, next) => {
 });
 
 // ── POST /api/admin/users (Create Admin or User) ───────
-router.post('/users', async (req, res, next) => {
+router.post('/users', requireAnyPermission([PERMISSIONS.ADMIN_USERS_MANAGE, PERMISSIONS.USERS_MANAGE]), async (req, res, next) => {
   try {
     const { email, password, full_name, phone, role } = req.body;
 
@@ -75,6 +76,9 @@ router.post('/users', async (req, res, next) => {
       return res.status(400).json({ error: 'هذا البريد الإلكتروني مسجل بالفعل', code: 'EMAIL_EXISTS' });
     }
 
+    const allowedRoles = ['owner', 'admin', 'store_manager', 'inventory_officer', 'fulfillment_agent', 'user'];
+    const assignedRole = role && allowedRoles.includes(role) ? role : 'user';
+
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = `user-${Date.now()}`;
     const newUser = {
@@ -83,7 +87,7 @@ router.post('/users', async (req, res, next) => {
       password_hash: passwordHash,
       full_name: full_name.trim(),
       phone: phone?.trim() || '',
-      role: role === 'admin' ? 'admin' : 'user',
+      role: assignedRole,
       created_at: new Date().toISOString()
     };
 
@@ -91,7 +95,7 @@ router.post('/users', async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: role === 'admin' ? 'تم إنشاء حساب المسؤول بنجاح!' : 'تم إنشاء الحساب بنجاح!',
+      message: assignedRole !== 'user' ? 'تم إنشاء حساب المسؤول/الموظف بنجاح!' : 'تم إنشاء الحساب بنجاح!',
       data: {
         id: created.id,
         email: created.email,
@@ -106,14 +110,56 @@ router.post('/users', async (req, res, next) => {
   }
 });
 
+// ── GET /api/admin/roles (List Predefined RBAC Roles) ─────
+router.get('/roles', requireAnyPermission([PERMISSIONS.PERMISSIONS_VIEW, PERMISSIONS.USERS_VIEW]), async (req, res, next) => {
+  try {
+    const roles = await db.getRoles();
+    res.json({ data: roles });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/admin/permissions (List Permission Catalog) ─
+router.get('/permissions', requireAnyPermission([PERMISSIONS.PERMISSIONS_VIEW, PERMISSIONS.USERS_VIEW]), async (req, res, next) => {
+  try {
+    const permissions = await db.getPermissions();
+    res.json({ data: permissions });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/admin/users/:id/permissions ─────────────────
+router.get('/users/:id/permissions', requireAnyPermission([PERMISSIONS.PERMISSIONS_VIEW, PERMISSIONS.USERS_VIEW]), async (req, res, next) => {
+  try {
+    const userPerms = await db.getUserPermissions(req.params.id);
+    res.json({ data: userPerms });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── PUT /api/admin/users/:id (Update User / Change Role) ─
-router.put('/users/:id', async (req, res, next) => {
+router.put('/users/:id', requireAnyPermission([PERMISSIONS.ADMIN_USERS_MANAGE, PERMISSIONS.USERS_MANAGE]), async (req, res, next) => {
   try {
     const { full_name, phone, role, password } = req.body;
+    const targetId = req.params.id;
+    const allowedRoles = ['owner', 'admin', 'store_manager', 'inventory_officer', 'fulfillment_agent', 'user'];
+
+    if (role && !allowedRoles.includes(role)) {
+      return res.status(400).json({ error: 'الدور المحدد غير صالح', code: 'INVALID_ROLE' });
+    }
+
+    // Owner safety check
+    if (targetId === 'admin-abdelrahman' && role && role !== 'admin' && role !== 'owner') {
+      return res.status(403).json({ error: 'لا يمكن تجريد حساب المدير العام الرئيسي من صلاحيات الإدارة', code: 'FORBIDDEN' });
+    }
+
     const updates = {};
     if (full_name) updates.full_name = full_name.trim();
     if (phone !== undefined) updates.phone = phone.trim();
-    if (role && ['admin', 'user'].includes(role)) updates.role = role;
+    if (role && allowedRoles.includes(role)) updates.role = role;
     if (password) {
       updates.password_hash = await bcrypt.hash(password, 10);
     }
@@ -141,7 +187,7 @@ router.put('/users/:id', async (req, res, next) => {
 });
 
 // ── DELETE /api/admin/users/:id ─────────────────────────
-router.delete('/users/:id', async (req, res, next) => {
+router.delete('/users/:id', requireAnyPermission([PERMISSIONS.ADMIN_USERS_MANAGE, PERMISSIONS.USERS_MANAGE]), async (req, res, next) => {
   try {
     const targetId = req.params.id;
     if (targetId === 'admin-abdelrahman') {
@@ -165,7 +211,7 @@ router.delete('/users/:id', async (req, res, next) => {
 });
 
 // ── GET /api/admin/orders ───────────────────────────────
-router.get('/orders', async (req, res, next) => {
+router.get('/orders', requireAnyPermission([PERMISSIONS.ADMIN_ORDERS_VIEW, PERMISSIONS.ORDERS_VIEW]), async (req, res, next) => {
   try {
     const orders = await db.getOrders();
     res.json({ data: orders });
@@ -175,7 +221,7 @@ router.get('/orders', async (req, res, next) => {
 });
 
 // ── PUT /api/admin/orders/:id/status ────────────────────
-router.put('/orders/:id/status', async (req, res, next) => {
+router.put('/orders/:id/status', requireAnyPermission([PERMISSIONS.ADMIN_ORDERS_MANAGE, PERMISSIONS.ORDERS_EDIT]), async (req, res, next) => {
   try {
     const { status, note } = req.body;
     const order = await db.getOrder(req.params.id);
@@ -203,7 +249,7 @@ router.put('/orders/:id/status', async (req, res, next) => {
 });
 
 // ── GET /api/admin/settings ─────────────────────────────
-router.get('/settings', async (req, res, next) => {
+router.get('/settings', requireAnyPermission([PERMISSIONS.ADMIN_SETTINGS_VIEW, PERMISSIONS.SETTINGS_VIEW]), async (req, res, next) => {
   try {
     const settings = await db.getSettings();
     res.json({ data: settings });
@@ -213,7 +259,7 @@ router.get('/settings', async (req, res, next) => {
 });
 
 // ── PUT /api/admin/settings ─────────────────────────────
-router.put('/settings', async (req, res, next) => {
+router.put('/settings', requireAnyPermission([PERMISSIONS.ADMIN_SETTINGS_MANAGE, PERMISSIONS.SETTINGS_MANAGE]), async (req, res, next) => {
   try {
     const updated = await db.updateSettings(req.body);
     res.json({

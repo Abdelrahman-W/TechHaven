@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
-import { requireAuth, requireAdmin, getOptionalUser } from '../middleware/auth.js';
+import { requireAuth, requirePermission, getOptionalUser } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -308,7 +308,7 @@ const updateStatusHandler = async (req, res, next) => {
   }
 };
 
-router.put('/:id/status', requireAuth, requireAdmin, updateStatusHandler);
-router.patch('/:id/status', requireAuth, requireAdmin, updateStatusHandler);
+router.put('/:id/status', requireAuth, requirePermission('orders.edit'), updateStatusHandler);
+router.patch('/:id/status', requireAuth, requirePermission('orders.edit'), updateStatusHandler);
 
 export default router;

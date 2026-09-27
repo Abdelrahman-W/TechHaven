@@ -199,6 +199,18 @@ export const api = {
     });
   },
 
+  async getAdminRoles() {
+    return fetchAPI('/admin/roles');
+  },
+
+  async getAdminPermissions() {
+    return fetchAPI('/admin/permissions');
+  },
+
+  async getAdminUserPermissions(userId) {
+    return fetchAPI(`/admin/users/${userId}/permissions`);
+  },
+
   async getAdminOrders() {
     return fetchAPI('/admin/orders');
   },

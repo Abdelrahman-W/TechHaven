@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -108,7 +108,7 @@ router.post('/:id/review', async (req, res, next) => {
 });
 
 // ── POST /api/products (Admin Only) ───────────────────────
-router.post('/', requireAuth, requireAdmin, async (req, res, next) => {
+router.post('/', requireAuth, requirePermission('products.create'), async (req, res, next) => {
   try {
     const {
       name,
@@ -177,7 +177,7 @@ router.post('/', requireAuth, requireAdmin, async (req, res, next) => {
 });
 
 // ── PUT /api/products/:id (Admin Only) ────────────────────
-router.put('/:id', requireAuth, requireAdmin, async (req, res, next) => {
+router.put('/:id', requireAuth, requirePermission('products.edit'), async (req, res, next) => {
   try {
     const updated = await db.updateProduct(req.params.id, req.body);
     if (!updated) {
@@ -191,7 +191,7 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res, next) => {
 });
 
 // ── PUT /api/products/:id/stock (Fast Inventory Adjustment) ─
-router.put('/:id/stock', requireAuth, requireAdmin, async (req, res, next) => {
+router.put('/:id/stock', requireAuth, requireAnyPermission(['inventory.adjust', 'products.stock', 'products.edit']), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { stock_qty } = req.body;
@@ -219,7 +219,7 @@ router.put('/:id/stock', requireAuth, requireAdmin, async (req, res, next) => {
 });
 
 // ── DELETE /api/products/:id (Admin Only) ─────────────────
-router.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
+router.delete('/:id', requireAuth, requirePermission('products.delete'), async (req, res, next) => {
   try {
     await db.deleteProduct(req.params.id);
     invalidateCache('/api/products', { scope: 'products' });

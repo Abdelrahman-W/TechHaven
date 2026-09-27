@@ -163,6 +163,114 @@ export const SEED_CATEGORIES = [
   { id: 'cat-drones', slug: 'drones', name: 'طائرات درونز', name_en: 'Drones', icon: '🚁', description: 'طائرات بدون طيار ذكية بكاميرات 4K وتثبيت جيمبال ثلاثي المحاور', sort_order: 8, is_active: true },
 ];
 
+// ── RBAC Seed Permissions & Roles (Batch 01) ──────────────────────
+export const SEED_PERMISSIONS = [
+  { code: 'products.view', resource: 'products', action: 'view', name: 'عرض المنتجات', description: 'الاطلاع على تفاصيل المنتجات والكتالوج والمخزون' },
+  { code: 'products.create', resource: 'products', action: 'create', name: 'إضافة منتج', description: 'إنشاء وإضافة منتجات جديدة في المتجر' },
+  { code: 'products.edit', resource: 'products', action: 'edit', name: 'تعديل المنتجات', description: 'تعديل بيانات المنتجات والأسعار والمواصفات' },
+  { code: 'products.delete', resource: 'products', action: 'delete', name: 'حذف المنتجات', description: 'حذف المنتجات نهائياً من الكتالوج' },
+
+  { code: 'categories.view', resource: 'categories', action: 'view', name: 'عرض الأقسام', description: 'الاطلاع على الأقسام والفئات' },
+  { code: 'categories.create', resource: 'categories', action: 'create', name: 'إضافة قسم', description: 'إنشاء أقسام وتصنيفات جديدة' },
+  { code: 'categories.edit', resource: 'categories', action: 'edit', name: 'تعديل الأقسام', description: 'تعديل أسماء وأيقونات الأقسام وترتيبها' },
+  { code: 'categories.delete', resource: 'categories', action: 'delete', name: 'حذف الأقسام', description: 'حذف التصنيفات والأقسام' },
+
+  { code: 'orders.view', resource: 'orders', action: 'view', name: 'عرض الطلبات', description: 'استعراض طلبات العملاء وتفاصيل الفواتير' },
+  { code: 'orders.edit', resource: 'orders', action: 'edit', name: 'تعديل الطلبات', description: 'تحديث حالة الشحن والطلب والملاحظات الداخلية' },
+  { code: 'orders.cancel', resource: 'orders', action: 'cancel', name: 'إلغاء الطلبات', description: 'إلغاء طلبات الشراء' },
+  { code: 'orders.export', resource: 'orders', action: 'export', name: 'تصدير كشوف الشحن', description: 'تصدير بيانات الشحنات والمانيفست لشركات الشحن (CSV)' },
+
+  { code: 'inventory.view', resource: 'inventory', action: 'view', name: 'عرض المخزون', description: 'الاطلاع على كميات المخزون وتنبيهات النواقص' },
+  { code: 'inventory.adjust', resource: 'inventory', action: 'adjust', name: 'تعديل المخزون السريع', description: 'تعديل وتحديث أرصدة المخزون بالمستودع' },
+  { code: 'inventory.movements', resource: 'inventory', action: 'movements', name: 'سجل حركة المخزون', description: 'استعراض سجل حركات الوارد والمنصرف والتالف' },
+
+  { code: 'purchasing.view', resource: 'purchasing', action: 'view', name: 'عرض المشتريات والموردين', description: 'الاطلاع على قائمة الموردين وأوامر الشراء' },
+  { code: 'purchasing.create', resource: 'purchasing', action: 'create', name: 'إنشاء أوامر شراء', description: 'إنشاء أوامر شراء جديدة وتوجيهها للموردين' },
+  { code: 'purchasing.receive', resource: 'purchasing', action: 'receive', name: 'استلام بضائع المشتريات', description: 'تسجيل استلام البضائع وزيادة رصيد المستودع' },
+
+  { code: 'reports.sales', resource: 'reports', action: 'sales', name: 'تقارير المبيعات', description: 'استعراض إحصائيات المبيعات وحجم الطلبات اليومي' },
+  { code: 'reports.profit', resource: 'reports', action: 'profit', name: 'تقارير الأرباح وهوامش الربح', description: 'استعراض تكلفة البضاعة المباعة COGS وصافي الأرباح' },
+  { code: 'reports.inventory', resource: 'reports', action: 'inventory', name: 'تقارير حركة المخزون', description: 'استعراض معدل دوران المخزون والمنتجات الراكدة' },
+
+  { code: 'b2b.view', resource: 'b2b', action: 'view', name: 'عرض طلبات الشركات', description: 'استعراض طلبات عروض أسعار الشركات والمؤسسات B2B' },
+  { code: 'b2b.manage', resource: 'b2b', action: 'manage', name: 'إدارة طلبات الشركات', description: 'تحديث حالات عروض الأسعار والتواصل مع الشركات' },
+
+  { code: 'reviews.view', resource: 'reviews', action: 'view', name: 'عرض التقييمات', description: 'استعراض تقييمات وتعليقات العملاء لكافة المنتجات' },
+  { code: 'reviews.moderate', resource: 'reviews', action: 'moderate', name: 'إدارة وحذف التقييمات', description: 'حذف وإدارة الملاحظات غير اللائقة أو العشوائية' },
+
+  { code: 'users.view', resource: 'users', action: 'view', name: 'عرض المستخدمين', description: 'الاطلاع على قائمة العملاء وفريق العمل' },
+  { code: 'users.manage', resource: 'users', action: 'manage', name: 'إدارة المستخدمين', description: 'إنشاء وتعديل وحذف حسابات الموظفين والعملاء' },
+
+  { code: 'permissions.view', resource: 'permissions', action: 'view', name: 'عرض الصلاحيات والأدوار', description: 'استعراض مصفوفة الصلاحيات والأدوار' },
+  { code: 'permissions.manage', resource: 'permissions', action: 'manage', name: 'إدارة الصلاحيات والأدوار', description: 'تعديل وتعيين الأدوار والصلاحيات للمستخدمين' },
+
+  { code: 'settings.view', resource: 'settings', action: 'view', name: 'عرض إعدادات النظام', description: 'الاطلاع على إعدادات المتجر وبيانات الاتصال' },
+  { code: 'settings.manage', resource: 'settings', action: 'manage', name: 'تعديل إعدادات النظام', description: 'تعديل بوابات الدفع وسياسات الشحن والربط الخارجي' },
+];
+
+export const SEED_ROLES = [
+  {
+    id: 'role-owner',
+    code: 'owner',
+    name: 'المدير العام (Owner)',
+    description: 'صلاحيات كاملة وغير مقيدة على كافة أقسام النظام والتقارير المالية وإدارة الصلاحيات',
+    is_system: true,
+    permissions: ['*'],
+  },
+  {
+    id: 'role-store-manager',
+    code: 'store_manager',
+    name: 'مدير المتجر والعمليات (Store Manager)',
+    description: 'إدارة العمليات اليومية: المنتجات، الطلبات، المخزون، الشركات، والتقارير التشغيلية',
+    is_system: true,
+    permissions: [
+      'products.view', 'products.create', 'products.edit', 'products.delete',
+      'categories.view', 'categories.create', 'categories.edit', 'categories.delete',
+      'orders.view', 'orders.edit', 'orders.cancel', 'orders.export',
+      'inventory.view', 'inventory.adjust', 'inventory.movements',
+      'purchasing.view', 'purchasing.create', 'purchasing.receive',
+      'b2b.view', 'b2b.manage',
+      'reviews.view', 'reviews.moderate',
+      'reports.sales', 'reports.inventory',
+      'users.view',
+      'settings.view',
+    ],
+  },
+  {
+    id: 'role-inventory-officer',
+    code: 'inventory_officer',
+    name: 'مسؤول المخازن (Inventory Officer)',
+    description: 'إدارة المخزون، الجرد السريع، متابعة النواقص، واستلام أوامر الشراء',
+    is_system: true,
+    permissions: [
+      'products.view',
+      'inventory.view', 'inventory.adjust', 'inventory.movements',
+      'purchasing.view', 'purchasing.receive',
+      'reports.inventory',
+    ],
+  },
+  {
+    id: 'role-fulfillment-agent',
+    code: 'fulfillment_agent',
+    name: 'مسؤول الشحن والتجهيز (Fulfillment Agent)',
+    description: 'متابعة الطلبات، تحديث حالات الشحن، وتصدير كشوف التوصيل لمندوبي الشحن',
+    is_system: true,
+    permissions: [
+      'products.view',
+      'orders.view', 'orders.edit', 'orders.export',
+      'inventory.view',
+    ],
+  },
+  {
+    id: 'role-user',
+    code: 'user',
+    name: 'عميل (Customer)',
+    description: 'حساب عميل عادي للتسوق والطلب ومتابعة المشتريات الشخصية',
+    is_system: true,
+    permissions: [],
+  },
+];
+
 // Seed Products (Exact Flagship Products from TechHaven Reference Design + Category Champions)
 export const SEED_PRODUCTS = [
   {
@@ -1858,6 +1966,35 @@ export const db = {
     const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
     if (error) throw error;
     return { success: true, message: 'تم حذف التقييم' };
-  }
+  },
+
+  // ── RBAC Roles & Permissions ──
+  async getRoles() {
+    if (!supabaseUrl) return SEED_ROLES;
+    const { data, error } = await supabase.from('roles').select('*, role_permissions(permissions(*))');
+    if (error) return SEED_ROLES;
+    return data;
+  },
+
+  async getRoleByCode(code) {
+    if (!supabaseUrl) return SEED_ROLES.find(r => r.code === code) || null;
+    const { data, error } = await supabase.from('roles').select('*, role_permissions(permissions(*))').eq('code', code).single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || SEED_ROLES.find(r => r.code === code) || null;
+  },
+
+  async getPermissions() {
+    if (!supabaseUrl) return SEED_PERMISSIONS;
+    const { data, error } = await supabase.from('permissions').select('*');
+    if (error) return SEED_PERMISSIONS;
+    return data;
+  },
+
+  async getUserPermissions(userId) {
+    const user = await this.findUserById(userId);
+    if (!user) return [];
+    const role = SEED_ROLES.find(r => r.code === user.role);
+    return role ? role.permissions : [];
+  },
 
   };

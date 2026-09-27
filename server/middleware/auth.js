@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { db } from '../lib/supabase.js';
+import { hasPermission } from '../lib/rbac.js';
 
 export const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
   // Fail fast at startup — never start with an insecure JWT signing secret.
-  // Set JWT_SECRET in your .env file (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
   throw new Error('JWT_SECRET environment variable is required.');
 }
 
@@ -66,7 +66,8 @@ export const requireAuth = async (req, res, next) => {
 };
 
 /**
- * Middleware: Requires authenticated user with 'admin' role
+ * Middleware: Requires authenticated user with administrative / staff role
+ * Backward-compatible wrapper allowing owner, admin, store_manager, inventory_officer, fulfillment_agent
  */
 export const requireAdmin = (req, res, next) => {
   if (!req.user) {
@@ -76,7 +77,10 @@ export const requireAdmin = (req, res, next) => {
     });
   }
 
-  if (req.user.role !== 'admin') {
+  const role = (req.user.role || '').toLowerCase().trim();
+  const allowedAdminRoles = ['owner', 'admin', 'store_manager', 'inventory_officer', 'fulfillment_agent'];
+
+  if (!allowedAdminRoles.includes(role)) {
     return res.status(403).json({
       error: 'هذا الإجراء مخصص للمشرفين والمسؤولين فقط',
       code: 'FORBIDDEN'
@@ -84,6 +88,58 @@ export const requireAdmin = (req, res, next) => {
   }
 
   next();
+};
+
+/**
+ * Middleware: Requires specific granular permission (resource.action)
+ */
+export const requirePermission = (permission) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        error: 'يجب تسجيل الدخول أولاً',
+        code: 'UNAUTHORIZED'
+      });
+    }
+
+    const role = (req.user.role || 'user').toLowerCase().trim();
+    if (!hasPermission(role, permission)) {
+      return res.status(403).json({
+        error: 'غير مصرح لك بتنفيذ هذا الإجراء (صلاحية غير كافية)',
+        code: 'FORBIDDEN',
+        required_permission: permission
+      });
+    }
+
+    next();
+  };
+};
+
+/**
+ * Middleware: Requires at least ONE of the specified permissions
+ */
+export const requireAnyPermission = (permissions) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        error: 'يجب تسجيل الدخول أولاً',
+        code: 'UNAUTHORIZED'
+      });
+    }
+
+    const role = (req.user.role || 'user').toLowerCase().trim();
+    const authorized = permissions.some(p => hasPermission(role, p));
+
+    if (!authorized) {
+      return res.status(403).json({
+        error: 'غير مصرح لك بتنفيذ هذا الإجراء (صلاحية غير كافية)',
+        code: 'FORBIDDEN',
+        required_permissions: permissions
+      });
+    }
+
+    next();
+  };
 };
 
 /**

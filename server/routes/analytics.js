@@ -1,23 +1,14 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
-import { requireAuth } from './auth.js';
+import { requireAuth, requireAdmin, requirePermission } from '../middleware/auth.js';
 
 const router = Router();
 
-// Middleware to check for admin role
-const requireAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ error: 'غير مصرح لك بالوصول', code: 'FORBIDDEN' });
-  }
-};
-
-// Apply auth and admin middleware to all routes in this file
+// Apply auth and admin baseline to all analytics routes
 router.use(requireAuth, requireAdmin);
 
 // ── GET /api/analytics/overview ────────────────────────
-router.get('/overview', async (req, res, next) => {
+router.get('/overview', requirePermission('reports.sales'), async (req, res, next) => {
   try {
     const [products, orders, users] = await Promise.all([
       db.getAllProducts(),
@@ -41,7 +32,7 @@ router.get('/overview', async (req, res, next) => {
 });
 
 // ── GET /api/analytics/revenue ──────────────────────────
-router.get('/revenue', async (req, res, next) => {
+router.get('/revenue', requirePermission('reports.sales'), async (req, res, next) => {
   try {
     const { period = '7d' } = req.query; // 7d, 30d, 90d
     let days = 7;
@@ -77,7 +68,7 @@ router.get('/revenue', async (req, res, next) => {
 });
 
 // ── GET /api/analytics/top-products ─────────────────────
-router.get('/top-products', async (req, res, next) => {
+router.get('/top-products', requirePermission('reports.sales'), async (req, res, next) => {
   try {
     const { limit = 10 } = req.query;
     const products = await db.getAllProducts();
@@ -98,7 +89,7 @@ router.get('/top-products', async (req, res, next) => {
 });
 
 // ── GET /api/analytics/recent-orders ────────────────────
-router.get('/recent-orders', async (req, res, next) => {
+router.get('/recent-orders', requirePermission('orders.view'), async (req, res, next) => {
   try {
     const { limit = 5 } = req.query;
     const orders = await (db.getOrders ? db.getOrders() : Promise.resolve([]));
@@ -113,11 +104,11 @@ router.get('/recent-orders', async (req, res, next) => {
 });
 
 // ── GET /api/analytics/user-stats ───────────────────────
-router.get('/user-stats', async (req, res, next) => {
+router.get('/user-stats', requirePermission('users.view'), async (req, res, next) => {
   try {
     const users = await db.getAllUsers();
     
-    const adminCount = users.filter(u => u.role === 'admin').length;
+    const adminCount = users.filter(u => u.role === 'admin' || u.role === 'owner' || u.role === 'store_manager').length;
     const customerCount = users.length - adminCount;
     
     res.json({

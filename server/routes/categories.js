@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { SEED_CATEGORIES, db } from '../lib/supabase.js';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requirePermission } from '../middleware/auth.js';
 import { invalidateCache } from '../middleware/cache.js';
 
 const router = Router();
@@ -33,7 +33,7 @@ router.get('/:slug', async (req, res) => {
 });
 
 // ── POST /api/categories (Admin Only) ─────────────────────
-router.post('/', requireAuth, requireAdmin, async (req, res, next) => {
+router.post('/', requireAuth, requirePermission('categories.create'), async (req, res, next) => {
   try {
     const { name, name_en, slug, icon = '📦', description, sort_order = 10 } = req.body;
     if (!name) {
@@ -64,7 +64,7 @@ router.post('/', requireAuth, requireAdmin, async (req, res, next) => {
 });
 
 // ── PUT /api/categories/:id (Admin Only) ──────────────────
-router.put('/:id', requireAuth, requireAdmin, async (req, res, next) => {
+router.put('/:id', requireAuth, requirePermission('categories.edit'), async (req, res, next) => {
   try {
     const updated = await db.updateCategory(req.params.id, req.body);
     invalidateCache('/api/categories', { scope: 'categories' });
@@ -79,7 +79,7 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res, next) => {
 });
 
 // ── DELETE /api/categories/:id (Admin Only) ───────────────
-router.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
+router.delete('/:id', requireAuth, requirePermission('categories.delete'), async (req, res, next) => {
   try {
     await db.deleteCategory(req.params.id);
     invalidateCache('/api/categories', { scope: 'categories' });

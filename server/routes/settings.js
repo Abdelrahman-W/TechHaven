@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
-import { requireAuth, requireAdmin, getOptionalUser } from '../middleware/auth.js';
+import { requireAuth, requirePermission, getOptionalUser } from '../middleware/auth.js';
 import { invalidateCache } from '../middleware/cache.js';
 
 const router = Router();
@@ -50,8 +50,8 @@ router.get('/', async (req, res, next) => {
     const settings = await db.getSettings();
     const user = getOptionalUser(req);
 
-    // If caller is an authenticated admin, return full settings
-    if (user && user.role === 'admin') {
+    // If caller is an authenticated staff/admin, return full settings
+    if (user && (user.role === 'admin' || user.role === 'owner' || user.role === 'store_manager')) {
       return res.json({ success: true, data: settings });
     }
 
@@ -69,8 +69,8 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// ── PUT /api/settings (Admin Only) ─────────────────────────
-router.put('/', requireAuth, requireAdmin, async (req, res, next) => {
+// ── PUT /api/settings (Admin Only: settings.manage) ─────────
+router.put('/', requireAuth, requirePermission('settings.manage'), async (req, res, next) => {
   try {
     const updated = await db.updateSettings(req.body);
     invalidateCache('/api/settings', { scope: 'settings' });

@@ -1,17 +1,15 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requirePermission } from '../middleware/auth.js';
+import { hasPermission } from '../lib/rbac.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
 // ── GET /api/reviews (Admin Only: All Reviews Across Catalog) ─
-router.get('/', requireAuth, async (req, res, next) => {
+router.get('/', requireAuth, requirePermission('reviews.view'), async (req, res, next) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'غير مصرح لك', code: 'FORBIDDEN' });
-    }
     const reviews = await db.getAllReviews();
     res.json({ data: reviews });
   } catch (err) {
@@ -77,8 +75,9 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       return res.status(404).json({ error: 'التقييم غير موجود', code: 'NOT_FOUND' });
     }
     
-    // Check ownership or admin role
-    if (review.user_id !== req.user.id && req.user.role !== 'admin') {
+    // Check ownership or review moderation permission
+    const canModerate = hasPermission(req.user?.role, 'reviews.moderate') || req.user?.role === 'admin';
+    if (review.user_id !== req.user.id && !canModerate) {
       return res.status(403).json({ error: 'غير مصرح لك', code: 'FORBIDDEN' });
     }
     

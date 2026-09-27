@@ -14,8 +14,18 @@ import {
   Mail,
   User,
   RefreshCw,
+  Shield,
 } from 'lucide-react';
 import { api } from '../../lib/api';
+
+const ROLES_CONFIG = {
+  owner: { label: 'المدير العام (Owner)', color: '#FF5E14', bg: 'rgba(255, 94, 20, 0.15)' },
+  admin: { label: 'مسؤول نظام (Admin)', color: '#FF5E14', bg: 'rgba(255, 94, 20, 0.15)' },
+  store_manager: { label: 'مدير المتجر (Store Manager)', color: '#A855F7', bg: 'rgba(168, 85, 247, 0.15)' },
+  inventory_officer: { label: 'مسؤول المخازن (Inventory Officer)', color: '#38BDF8', bg: 'rgba(56, 189, 248, 0.15)' },
+  fulfillment_agent: { label: 'مسؤول الشحن (Fulfillment Agent)', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.15)' },
+  user: { label: 'عميل (Customer)', color: 'var(--text-muted)', bg: 'rgba(255, 255, 255, 0.05)' },
+};
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -62,7 +72,7 @@ export default function Users() {
     setSubmitting(true);
     try {
       await api.createAdminUser(formData);
-      setFormSuccess(formData.role === 'admin' ? 'تم إضافة المسؤول الجديد بنجاح!' : 'تم إنشاء الحساب بنجاح!');
+      setFormSuccess(formData.role !== 'user' ? 'تم إضافة عضو الفريق بنجاح!' : 'تم إنشاء الحساب بنجاح!');
       setFormData({
         full_name: '',
         email: '',
@@ -82,15 +92,23 @@ export default function Users() {
     }
   };
 
-  const handleToggleRole = async (user) => {
-    if (user.email === 'abdelrahman959@gmail.com') {
+  const getNextRole = (currentRole) => {
+    const roles = ['user', 'store_manager', 'inventory_officer', 'fulfillment_agent', 'admin'];
+    const currentIndex = roles.indexOf(currentRole);
+    if (currentIndex === -1) return roles[0]; // default to user
+    const nextIndex = (currentIndex + 1) % roles.length;
+    return roles[nextIndex];
+  };
+
+  const handleChangeUserRole = async (user, newRole) => {
+    if (user.email === 'abdelrahman959@gmail.com' || user.id === 'admin-abdelrahman') {
       alert('لا يمكن تغيير صلاحيات المدير العام الرئيسي');
       return;
     }
-    const newRole = user.role === 'admin' ? 'user' : 'admin';
-    const confirmMsg = newRole === 'admin' 
-      ? `هل أنت متأكد من ترقية "${user.full_name || user.email}" ليكون مسؤولاً (Admin)؟`
-      : `هل أنت متأكد من إلغاء صلاحيات الإدارة عن "${user.full_name || user.email}"؟`;
+    if (user.role === newRole) return;
+
+    const roleLabel = ROLES_CONFIG[newRole]?.label || newRole;
+    const confirmMsg = `هل أنت متأكد من تغيير دور "${user.full_name || user.email}" إلى: ${roleLabel}؟`;
 
     if (!window.confirm(confirmMsg)) return;
 
@@ -102,41 +120,31 @@ export default function Users() {
     }
   };
 
-  const handleDeleteUser = async (user) => {
-    if (user.email === 'abdelrahman959@gmail.com') {
-      alert('محظور: لا يمكن حذف حساب المدير العام الرئيسي (عبد الرحمن)');
-      return;
-    }
-
-    if (!window.confirm(`هل أنت متأكد من حذف الحساب "${user.full_name || user.email}" نهائياً؟`)) return;
-
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
     try {
-      await api.deleteAdminUser(user.id);
+      await api.deleteAdminUser(userId);
       fetchUsers();
     } catch (err) {
-      alert(err.message || 'فشل حذف الحساب');
+      alert(err.message || 'فشل حذف المستخدم');
     }
   };
 
-  // Stats calculation
-  const totalUsers = users.length;
-  const adminCount = users.filter((u) => u.role === 'admin').length;
-  const customerCount = totalUsers - adminCount;
-
-  // Filter logic
   const filteredUsers = users.filter((u) => {
-    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
     const matchesSearch =
       !search ||
       u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase()) ||
       u.phone?.includes(search);
+
+    const matchesRole =
+      roleFilter === 'all' || u.role === roleFilter;
+
     return matchesRole && matchesSearch;
   });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, direction: 'rtl' }}>
-
       {/* ── Top Header & Stats ───────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <div>
@@ -166,507 +174,419 @@ export default function Users() {
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-md)',
-            padding: '18px 22px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            padding: '16px',
+            textAlign: 'center',
           }}
         >
-          <div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', fontWeight: 700, marginBottom: 4 }}>
-              إجمالي المسؤولين (Admins)
-            </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--brand-orange)' }}>
-              {adminCount}
-            </div>
-          </div>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(255, 94, 20, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--brand-orange)',
-            }}
-          >
-            <ShieldCheck size={22} />
+          <div style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-muted)' }}>إجمالي المستخدمين</div>
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#FFFFFF', marginTop: 8 }}>
+            {users.length}
           </div>
         </div>
-
         <div
           style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-md)',
-            padding: '18px 22px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            padding: '16px',
+            textAlign: 'center',
           }}
         >
-          <div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', fontWeight: 700, marginBottom: 4 }}>
-              إجمالي العملاء
-            </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#10B981' }}>
-              {customerCount}
-            </div>
-          </div>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(16, 185, 129, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#10B981',
-            }}
-          >
-            <UsersIcon size={22} />
+          <div style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-muted)' }}>مسؤولين actifs</div>
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#FFFFFF', marginTop: 8 }}>
+            {users.filter((u) => u.role !== 'user').length}
           </div>
         </div>
-
         <div
           style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-md)',
-            padding: '18px 22px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            padding: '16px',
+            textAlign: 'center',
           }}
         >
-          <div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', fontWeight: 700, marginBottom: 4 }}>
-              كافة الحسابات المسجلة
-            </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#FFFFFF' }}>
-              {totalUsers}
-            </div>
-          </div>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(255, 255, 255, 0.06)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#FFFFFF',
-            }}
-          >
-            <Crown size={22} />
+          <div style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-muted)' }}>عملاء actifs</div>
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#FFFFFF', marginTop: 8 }}>
+            {users.filter((u) => u.role === 'user').length}
           </div>
         </div>
       </div>
 
-      {/* ── Search & Filter Controls ─────────────────────────── */}
-      <div
-        style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
-          padding: 16,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 16,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 260 }}>
-          <Search size={18} style={{ color: 'var(--text-muted)' }} />
+      {/* ── Search & Filter Controls ──────────────────────────────── */}
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>بحث</label>
           <input
             type="text"
-            placeholder="بحث بالاسم أو البريد الإلكتروني أو الهاتف..."
+            placeholder="ابحث بالاسم أو البريد أو الهاتف..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="input"
-            style={{ padding: '8px 12px', fontSize: 'var(--text-xs)' }}
+            style={{ fontSize: 'var(--text-xs)', padding: '10px 12px', width: 280 }}
           />
         </div>
-
-        <div style={{ display: 'flex', gap: 6 }}>
-          {[
-            { key: 'all', label: 'الكل' },
-            { key: 'admin', label: 'المسؤولين (Admins)' },
-            { key: 'user', label: 'العملاء' },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setRoleFilter(tab.key)}
-              style={{
-                background: roleFilter === tab.key ? 'var(--brand-orange)' : 'var(--bg-secondary)',
-                color: roleFilter === tab.key ? '#FFFFFF' : 'var(--text-muted)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '6px 14px',
-                fontSize: 'var(--text-xs)',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-
-          <button
-            type="button"
-            onClick={fetchUsers}
-            className="btn btn-secondary btn-apple-tactile"
-            style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}
-            title="تحديث البيانات"
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>تصفية حسب الدور</label>
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="select"
+            style={{
+              fontSize: 'var(--text-xs)',
+              padding: '10px 12px',
+              width: 220,
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border)',
+              color: '#FFFFFF',
+              borderRadius: 'var(--radius-sm)',
+            }}
           >
-            <RefreshCw size={14} className={loading ? 'spin-slow' : ''} />
-          </button>
+            <option value="all">الكل</option>
+            <option value="owner">المدير العام</option>
+            <option value="admin">مسؤول نظام</option>
+            <option value="store_manager">مدير المتجر</option>
+            <option value="inventory_officer">مسؤول المخازن</option>
+            <option value="fulfillment_agent">مسؤول الشحن</option>
+            <option value="user">عملاء</option>
+          </select>
         </div>
       </div>
 
-      {/* ── Users Table Card ─────────────────────────────────── */}
-      <div
-        style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-card)',
-        }}
-      >
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'start' }}>
-            <thead>
-              <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
-                <th style={{ padding: '14px 18px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 800 }}>
-                  المستخدم
-                </th>
-                <th style={{ padding: '14px 18px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 800 }}>
-                  البريد الإلكتروني
-                </th>
-                <th style={{ padding: '14px 18px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 800 }}>
-                  الصلاحية (Role)
-                </th>
-                <th style={{ padding: '14px 18px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 800 }}>
-                  رقم الهاتف
-                </th>
-                <th style={{ padding: '14px 18px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 800 }}>
-                  تاريخ الإنشاء
-                </th>
-                <th style={{ padding: '14px 18px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 800, textAlign: 'center' }}>
-                  إجراءات التحكم
-                </th>
+      {/* ── Users Table ───────────────────────────────────────────── */}
+      <div style={{ overflowX: 'auto' }}>
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'separate',
+            borderSpacing: '0',
+            background: 'var(--bg-card)',
+            borderRadius: 'var(--radius-md)',
+            overflow: 'hidden',
+          }}
+        >
+          <thead>
+            <tr>
+              <th
+                style={{
+                  padding: '14px 18px',
+                  textAlign: 'left',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-input)',
+                }}
+              >
+                الصورة
+              </th>
+              <th
+                style={{
+                  padding: '14px 18px',
+                  textAlign: 'left',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-input)',
+                }}
+              >
+                الاسم الكامل
+              </th>
+              <th
+                style={{
+                  padding: '14px 18px',
+                  textAlign: 'left',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-input)',
+                }}
+              >
+                البريد الإلكتروني
+              </th>
+              <th
+                style={{
+                  padding: '14px 18px',
+                  textAlign: 'left',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-input)',
+                }}
+              >
+                الدور
+              </th>
+              <th
+                style={{
+                  padding: '14px 18px',
+                  textAlign: 'left',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-input)',
+                }}
+              >
+                الهاتف
+              </th>
+              <th
+                style={{
+                  padding: '14px 18px',
+                  textAlign: 'left',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-input)',
+                }}
+              >
+                تاريخ الإنشاء
+              </th>
+              <th
+                style={{
+                  padding: '14px 18px',
+                  textAlign: 'center',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-input)',
+                }}
+              >
+                الإجراءات
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  style={{
+                    padding: '32px',
+                    textAlign: 'center',
+                    color: 'var(--text-muted)',
+                    fontSize: 'var(--text-sm)',
+                  }}
+                >
+                  لا يوجد مستخدمين يطابقون البحث
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div className="skeleton" style={{ height: 40, margin: '10px 0', borderRadius: 6 }} />
-                    <div className="skeleton" style={{ height: 40, margin: '10px 0', borderRadius: 6 }} />
-                    <div className="skeleton" style={{ height: 40, margin: '10px 0', borderRadius: 6 }} />
-                  </td>
-                </tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
-                    لا يوجد مستخدمين مطابقين للبحث.
-                  </td>
-                </tr>
-              ) : (
-                filteredUsers.map((u, idx) => {
-                  const isSuper = u.email === 'abdelrahman959@gmail.com' || u.is_super_admin;
-                  const isAdmin = u.role === 'admin';
+            ) : (
+              filteredUsers.map((u) => {
+                const isSuper = u.role === 'owner' || u.is_super_admin;
+                const isAdmin = u.role === 'admin';
+                return (
+                  <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    {/* Avatar */}
+                    <td style={{ padding: '14px 18px', textAlign: 'center' }}>
+                      <div
+                        style={{
+                          width: 36,
+                          height: 36,
+                          background: 'var(--bg-input)',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {u.full_name ? (
+                          u.full_name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 2)
+                        ) : (
+                          <User size={16} />
+                        )}
+                      </div>
+                    </td>
 
-                  return (
-                    <tr
-                      key={u.id || idx}
-                      style={{
-                        borderBottom: '1px solid var(--border-subtle)',
-                        background: isSuper ? 'rgba(255, 94, 20, 0.03)' : 'transparent',
-                        transition: 'background 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = isSuper ? 'rgba(255, 94, 20, 0.03)' : 'transparent')}
-                    >
-                      {/* Name */}
-                      <td style={{ padding: '14px 18px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div
-                            style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: 'var(--radius-full)',
-                              background: isSuper ? 'var(--brand-orange)' : isAdmin ? 'rgba(255, 94, 20, 0.15)' : 'rgba(255, 255, 255, 0.06)',
-                              color: isSuper ? '#FFFFFF' : isAdmin ? 'var(--brand-orange)' : 'var(--text-muted)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontWeight: 800,
-                              fontSize: '0.8rem',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {isSuper ? <Crown size={16} /> : isAdmin ? <ShieldCheck size={16} /> : <User size={16} />}
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'var(--text-xs)' }}>
-                              {u.full_name || 'مستخدم بدون اسم'}
-                            </div>
-                            {isSuper && (
-                              <span style={{ fontSize: '0.65rem', color: 'var(--brand-orange)', fontWeight: 800 }}>
-                                مالك المتجر (Primary Super Admin)
-                              </span>
-                            )}
-                          </div>
+                    {/* Full Name */}
+                    <td style={{ padding: '14px 18px', color: '#FFFFFF', fontSize: 'var(--text-xs)' }}>
+                      <div>
+                        <div style={{ fontWeight: 800, color: '#FFFFFF', fontSize: 'var(--text-xs)' }}>
+                          {u.full_name || 'مستخدم بدون اسم'}
                         </div>
-                      </td>
-
-                      {/* Email */}
-                      <td style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)' }}>
-                        {u.email}
-                      </td>
-
-                      {/* Role */}
-                      <td style={{ padding: '14px 18px' }}>
-                        {isSuper ? (
+                        {isSuper && (
                           <span
                             style={{
-                              background: 'rgba(255, 94, 20, 0.15)',
+                              fontSize: '0.65rem',
                               color: 'var(--brand-orange)',
-                              border: '1px solid rgba(255, 94, 20, 0.3)',
-                              padding: '4px 10px',
-                              borderRadius: 'var(--radius-xs)',
-                              fontSize: 'var(--text-2xs)',
-                              fontWeight: 900,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 5,
+                              fontWeight: 800,
                             }}
                           >
-                            <Crown size={12} />
-                            <span>مدير عام رئيسي</span>
+                            مالك المتجر (Primary Super Admin)
                           </span>
-                        ) : isAdmin ? (
-                          <span
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Email */}
+                    <td style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)' }}>
+                      {u.email}
+                    </td>
+
+                    {/* Role */}
+                    <td style={{ padding: '14px 18px' }}>
+                      {isSuper ? (
+                        <span
+                          style={{
+                            background: ROLES_CONFIG.owner.bg,
+                            color: ROLES_CONFIG.owner.color,
+                            border: '1px solid rgba(255, 94, 20, 0.3)',
+                            padding: '4px 10px',
+                            borderRadius: 'var(--radius-xs)',
+                            fontSize: 'var(--text-2xs)',
+                            fontWeight: 900,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                          }}
+                        >
+                          <Crown size={12} />
+                          <span>{ROLES_CONFIG.owner.label}</span>
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            background: ROLES_CONFIG[u.role]?.bg,
+                            color: ROLES_CONFIG[u.role]?.color,
+                            padding: '4px 10px',
+                            borderRadius: 'var(--radius-xs)',
+                            fontSize: 'var(--text-2xs)',
+                            fontWeight: u.role === 'admin' ? 800 : 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                          }}
+                        >
+                          {u.role === 'admin' && <ShieldCheck size={12} />}
+                          <span>{ROLES_CONFIG[u.role]?.label}</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Phone */}
+                    <td style={{ padding: '14px 18px', color: 'var(--text-muted)', fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)' }}>
+                      {u.phone || '—'}
+                    </td>
+
+                    {/* Created At */}
+                    <td style={{ padding: '14px 18px', color: 'var(--text-dim)', fontSize: 'var(--text-2xs)' }}>
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString('ar-EG') : '—'}
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ padding: '14px 18px', textAlign: 'center' }}>
+                      {isSuper ? (
+                        <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-dim)' }}>
+                          حساب المالك الرئيسي محمى 🔒
+                        </span>
+                      ) : (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextRole = getNextRole(u.role);
+                              handleChangeUserRole(u, nextRole);
+                            }}
                             style={{
-                              background: 'rgba(255, 94, 20, 0.1)',
-                              color: 'var(--brand-orange)',
-                              padding: '4px 10px',
+                              background: isAdmin ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 94, 20, 0.1)',
+                              color: isAdmin ? '#EF4444' : 'var(--brand-orange)',
+                              border: 'none',
                               borderRadius: 'var(--radius-xs)',
+                              padding: '5px 10px',
                               fontSize: 'var(--text-2xs)',
                               fontWeight: 800,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 5,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
                             }}
+                            title={isAdmin ? 'تخفيض لرتبة عميل' : 'ترقية لمسؤول'}
                           >
-                            <ShieldCheck size={12} />
-                            <span>مسؤول (Admin)</span>
-                          </span>
-                        ) : (
-                          <span
+                            {isAdmin ? 'تنزيل لعميل' : 'ترقية لمسؤول 🛡️'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(u)}
                             style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              color: 'var(--text-muted)',
-                              padding: '4px 10px',
-                              borderRadius: 'var(--radius-xs)',
+                              background: 'transparent',
+                              color: 'var(--text-dim)',
+                              border: 'none',
+                              padding: '5px 10px',
                               fontSize: 'var(--text-2xs)',
-                              fontWeight: 700,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
                             }}
                           >
-                            عميل
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Phone */}
-                      <td style={{ padding: '14px 18px', color: 'var(--text-muted)', fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)' }}>
-                        {u.phone || '—'}
-                      </td>
-
-                      {/* Created At */}
-                      <td style={{ padding: '14px 18px', color: 'var(--text-dim)', fontSize: 'var(--text-2xs)' }}>
-                        {u.created_at ? new Date(u.created_at).toLocaleDateString('ar-EG') : '—'}
-                      </td>
-
-                      {/* Actions */}
-                      <td style={{ padding: '14px 18px', textAlign: 'center' }}>
-                        {isSuper ? (
-                          <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-dim)' }}>
-                            حساب المالك الرئيسي محمى 🔒
-                          </span>
-                        ) : (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                            <button
-                              type="button"
-                              onClick={() => handleToggleRole(u)}
-                              style={{
-                                background: isAdmin ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 94, 20, 0.1)',
-                                color: isAdmin ? '#EF4444' : 'var(--brand-orange)',
-                                border: 'none',
-                                borderRadius: 'var(--radius-xs)',
-                                padding: '5px 10px',
-                                fontSize: 'var(--text-2xs)',
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                              title={isAdmin ? 'تخفيض لرتبة عميل' : 'ترقية لمسؤول'}
-                            >
-                              {isAdmin ? 'تنزيل لعميل' : 'ترقية لمسؤول 🛡️'}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteUser(u)}
-                              style={{
-                                background: 'transparent',
-                                color: 'var(--text-dim)',
-                                border: 'none',
-                                padding: '6px',
-                                borderRadius: 4,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                transition: 'color 0.15s ease',
-                              }}
-                              title="حذف المستخدم"
-                              onMouseEnter={(e) => (e.currentTarget.style.color = '#EF4444')}
-                              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-dim)')}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {/* ── Modal: Add New Admin or User ─────────────────────── */}
+      {/* ── Create User Modal ─────────────────────────────────────── */}
       {isModalOpen && (
         <div
           style={{
             position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(8px)',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 9999,
-            padding: 20,
+            zIndex: 1000,
           }}
-          onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="apple-scale-in"
             style={{
-              width: '100%',
-              maxWidth: 480,
-              background: '#14161F',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: 'var(--bg-card)',
               borderRadius: 'var(--radius-lg)',
-              padding: 28,
-              boxShadow: 'var(--shadow-xl)',
+              padding: '24px',
+              width: '90%',
+              maxWidth: 400,
+              maxHeight: '80vh',
+              overflowY: 'auto',
             }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'rgba(255, 94, 20, 0.12)',
-                    color: 'var(--brand-orange)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <UserPlus size={20} />
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: 'var(--text-md)', fontWeight: 800, color: '#FFFFFF' }}>
-                    إضافة مسؤول جديد للوحة التحكم
-                  </h3>
-                  <small style={{ color: 'var(--text-muted)' }}>منح صلاحيات إدارة المتجر والمنتجات والطلبات</small>
-                </div>
-              </div>
-
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF' }}>
+                {formData.role !== 'user' ? 'إضافة عضو فريق جديد' : 'إنشاء حساب عميل جديد'}
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--text-muted)',
+                  border: 'none',
+                  fontSize: '1.25rem',
+                  cursor: 'pointer',
+                  padding: 4,
+                }}
               >
                 <X size={20} />
               </button>
             </div>
 
-            {formError && (
-              <div
-                style={{
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '10px 14px',
-                  fontSize: 'var(--text-xs)',
-                  color: '#EF4444',
-                  marginBottom: 16,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-              >
-                <AlertCircle size={16} flexShrink={0} />
-                <span>{formError}</span>
-              </div>
-            )}
-
-            {formSuccess && (
-              <div
-                style={{
-                  background: 'rgba(16, 185, 129, 0.12)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '10px 14px',
-                  fontSize: 'var(--text-xs)',
-                  color: '#10B981',
-                  marginBottom: 16,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-              >
-                <Check size={16} flexShrink={0} />
-                <span>{formSuccess}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <form onSubmit={handleCreateUser}>
               <div>
                 <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
-                  الاسم الكامل:
+                  الاسم الكامل:*
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="مثال: م. كريم حسني"
+                  placeholder="أحمد علي محمد"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   className="input"
@@ -676,7 +596,7 @@ export default function Users() {
 
               <div>
                 <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
-                  البريد الإلكتروني:
+                  البريد الإلكتروني:*
                 </label>
                 <input
                   type="email"
@@ -691,7 +611,7 @@ export default function Users() {
 
               <div>
                 <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
-                  كلمة المرور:
+                  كلمة المرور:*
                 </label>
                 <input
                   type="password"
@@ -710,52 +630,122 @@ export default function Users() {
                 </label>
                 <input
                   type="tel"
-                  placeholder="01012345678"
+                  placeholder="+20 1XXXXXXXXX"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="input"
-                  style={{ fontSize: 'var(--text-xs)', padding: '10px 12px' }}
+                  style={{ fontSize: 'var(--text-xs)', padding: '10px 12px', direction: 'ltr' }}
                 />
               </div>
 
               <div>
                 <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
-                  نوع الصلاحية:
+                  الدور:
                 </label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="select"
-                  style={{ fontSize: 'var(--text-xs)', padding: '10px 12px' }}
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    padding: '10px 12px',
+                    width: '100%',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border)',
+                    color: '#FFFFFF',
+                    borderRadius: 'var(--radius-sm)',
+                  }}
                 >
-                  <option value="admin">مسؤول بصلاحيات كاملة (Admin)</option>
-                  <option value="user">عميل متجر عادي (Customer)</option>
+                  <option value="owner">المدير العام (Owner)</option>
+                  <option value="admin">مسؤول نظام (Admin)</option>
+                  <option value="store_manager">مدير المتجر (Store Manager)</option>
+                  <option value="inventory_officer">مسؤول المخازن (Inventory Officer)</option>
+                  <option value="fulfillment_agent">مسؤول الشحن (Fulfillment Agent)</option>
+                  <option value="user">عميل (Customer)</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+              {formError && (
+                <div
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    color: '#EF4444',
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: 'var(--text-xs)',
+                    marginTop: 12,
+                  }}
+                >
+                  {formError}
+                </div>
+              )}
+              {formSuccess && (
+                <div
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                    color: '#10B981',
+                    padding: '10px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: 'var(--text-xs)',
+                    marginTop: 12,
+                  }}
+                >
+                  {formSuccess}
+                </div>
+              )}
+
+              <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setFormSuccess(null);
+                    setFormData({
+                      full_name: '',
+                      email: '',
+                      password: '',
+                      phone: '',
+                      role: 'admin',
+                    });
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-muted)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: 'var(--text-xs)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  إلغاء
+                </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn btn-th-orange btn-apple-tactile"
-                  style={{ flex: 1, padding: 12, borderRadius: 'var(--radius-sm)', fontWeight: 800 }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    background: 'var(--brand-orange)',
+                    border: 'none',
+                    color: '#FFFFFF',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: 'var(--text-xs)',
+                    fontWeight: 600,
+                    cursor: submitting ? 'not-allowed' : 'pointer',
+                    opacity: submitting ? 0.7 : 1,
+                  }}
                 >
-                  {submitting ? 'جارِ الحفظ...' : 'تأكيد إضافة الحساب ✓'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="btn btn-secondary"
-                  style={{ padding: '12px 20px', borderRadius: 'var(--radius-sm)' }}
-                >
-                  إلغاء
+                  {submitting ? 'جاري الإضافة...' : 'تأكيد الإضافة'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }

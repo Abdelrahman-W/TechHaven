@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requirePermission } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -48,7 +48,7 @@ router.post('/quote', async (req, res, next) => {
 });
 
 // ── GET /api/b2b (Admin Only) ───────────────────────────
-router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
+router.get('/', requireAuth, requirePermission('b2b.view'), async (req, res, next) => {
   try {
     const list = await db.getB2BRequests();
     res.json({ data: list });
@@ -58,7 +58,7 @@ router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
 });
 
 // ── PUT /api/b2b/:id/status (Admin Only) ─────────────────
-router.put('/:id/status', requireAuth, requireAdmin, async (req, res, next) => {
+router.put('/:id/status', requireAuth, requirePermission('b2b.manage'), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status, admin_notes } = req.body;
@@ -84,7 +84,7 @@ router.put('/:id/status', requireAuth, requireAdmin, async (req, res, next) => {
 });
 
 // ── POST /api/b2b/bulk-status (Admin Only) ────────────────
-router.post('/bulk-status', requireAuth, requireAdmin, async (req, res, next) => {
+router.post('/bulk-status', requireAuth, requirePermission('b2b.manage'), async (req, res, next) => {
   try {
     const { ids, status, admin_notes } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
