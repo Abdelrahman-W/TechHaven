@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requireAdmin, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 import PurchaseOrderService from '../lib/purchaseOrderService.js';
+import ReceivingService from '../lib/receivingService.js';
 
 const router = Router();
 
@@ -116,6 +117,73 @@ router.post('/orders/:id/close', requirePermission('purchasing.approve'), async 
       success: true,
       data: updated,
       message: 'تم إغلاق أمر الشراء بنجاح',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Physical Receiving Workflow (Batch 05) ─────────────────────
+
+// ── POST /api/purchasing/orders/:id/receive ───────────────────
+router.post('/orders/:id/receive', requirePermission('purchasing.receive'), async (req, res, next) => {
+  try {
+    const { items, notes, idempotency_key } = req.body;
+    const idempotencyKey = idempotency_key || req.headers['x-idempotency-key'] || null;
+    const actorId = req.user?.email || req.user?.name || req.user?.id || req.user?.userId || 'staff';
+
+    const result = await ReceivingService.processReceiving({
+      purchaseOrderId: req.params.id,
+      items,
+      notes,
+      actorId,
+      idempotencyKey,
+    });
+
+    res.status(result.is_duplicate ? 200 : 201).json({
+      success: true,
+      data: result,
+      message: result.is_duplicate
+        ? 'تم استرجاع إذن الاستلام المسجل مسبقاً (Idempotent Response)'
+        : 'تم تسجيل استلام البضاعة وتحديث المخزون ومتوسط التكلفة (WAC) بنجاح',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/purchasing/orders/:id/receivings ──────────────────
+router.get('/orders/:id/receivings', requirePermission('purchasing.view'), async (req, res, next) => {
+  try {
+    const receivings = await ReceivingService.getReceivings({
+      purchase_order_id: req.params.id,
+      page: req.query.page,
+      limit: req.query.limit,
+    });
+    res.json({
+      success: true,
+      data: receivings.data,
+      pagination: receivings.pagination,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/purchasing/receivings/:id ─────────────────────────
+router.get('/receivings/:id', requirePermission('purchasing.view'), async (req, res, next) => {
+  try {
+    const receiving = await ReceivingService.getReceiving(req.params.id);
+    if (!receiving) {
+      return res.status(404).json({
+        success: false,
+        error: 'إذن الاستلام غير موجود',
+        code: 'RECEIVING_NOT_FOUND',
+      });
+    }
+    res.json({
+      success: true,
+      data: receiving,
     });
   } catch (err) {
     next(err);

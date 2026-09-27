@@ -113,7 +113,7 @@ export const api = {
   async createOrder(orderData) {
     // Server-authoritative fields (shipping, total, discount) are removed
     // so the backend calculates them from trusted data (subtotal, city)
-    const { shippingCost, total, discount_amount, ...cleanedData } = orderData;
+    const { shippingCost: _shippingCost, total: _total, discount_amount: _discount_amount, ...cleanedData } = orderData;
     return fetchAPI('/orders', {
       method: 'POST',
       body: JSON.stringify(cleanedData),
@@ -365,6 +365,38 @@ export const api = {
     });
   },
 
+  // ── Purchase Order Receiving & WAC (Batch 05) ──
+  async receivePurchaseOrder(id, data, options = {}) {
+    const headers = {};
+    if (options.idempotencyKey) {
+      headers['x-idempotency-key'] = options.idempotencyKey;
+    }
+    return fetchAPI(`/purchasing/orders/${id}/receive`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getPurchaseOrderReceivings(id) {
+    return fetchAPI(`/purchasing/orders/${id}/receivings`);
+  },
+
+  async getReceiving(receivingId) {
+    return fetchAPI(`/purchasing/receivings/${receivingId}`);
+  },
+
+  async getReceivings(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/purchasing/receivings${qs}`);
+  },
+
   async deleteProduct(productId) {
     return fetchAPI(`/products/${productId}`, {
       method: 'DELETE',
@@ -508,22 +540,6 @@ export const api = {
 
   async getAnalyticsUserStats() {
     return fetchAPI('/analytics/user-stats');
-  },
-
-  // ── Store Settings & System Configuration ──
-  async getSettings() {
-    return fetchAPI('/settings');
-  },
-
-  async getPublicSettings() {
-    return fetchAPI('/settings');
-  },
-
-  async updateSettings(settingsData) {
-    return fetchAPI('/settings', {
-      method: 'PUT',
-      body: JSON.stringify(settingsData),
-    });
   },
 
   };

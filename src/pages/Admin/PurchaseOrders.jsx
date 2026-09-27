@@ -55,6 +55,12 @@ export default function AdminPurchaseOrders() {
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState(null);
+  // Receive Modal State
+  const [showReceiveModal, setShowReceiveModal] = useState(false);
+  const [receivePOId, setReceivePOId] = useState(null);
+  const [receiveFormData, setReceiveFormData] = useState({ items: [], notes: '', idempotency_key: '' });
+  const [receiveLoading, setReceiveLoading] = useState(false);
+  const [receiveErrors, setReceiveErrors] = useState({});
 
   const showToast = (message, type = 'success') => {
     setNotification({ message, type });
@@ -279,6 +285,77 @@ export default function AdminPurchaseOrders() {
       showToast(err.message || 'فشل تغيير حالة أمر الشراء', 'error');
     } finally {
       setTransitionSubmitting(false);
+    }
+  };
+
+  const openReceiveModal = async (po) => {
+    try {
+      let fullPO = po;
+      if (!po.items || po.items.length === 0) {
+        const res = await api.getPurchaseOrder(po.id);
+        if (res.success && res.data) fullPO = res.data;
+      }
+      setReceivePOId(fullPO.id);
+      const receiveItems = (fullPO.items || []).map(it => {
+        const ordered = Number(it.quantity || 0);
+        const received = Number(it.received_quantity || 0);
+        const remaining = Math.max(0, ordered - received);
+        return {
+          purchase_order_item_id: it.id,
+          product_id: it.product_id,
+          product_name: it.product_name,
+          product_sku: it.product_sku,
+          quantity: ordered,
+          received_quantity: received,
+          remaining_quantity: remaining,
+          receive_quantity: remaining,
+          unit_price: Number(it.unit_price || 0),
+          line_total: Math.round(remaining * Number(it.unit_price || 0) * 100) / 100,
+        };
+      });
+      setReceiveFormData({
+        items: receiveItems,
+        notes: '',
+        idempotency_key: '',
+      });
+      setReceiveErrors({});
+      setShowReceiveModal(true);
+    } catch (err) {
+      showToast(err.message || 'فشل تحميل بيانات الاستلام لأمر الشراء', 'error');
+    }
+  };
+
+  const handleReceiveSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const itemsToReceive = receiveFormData.items
+      .filter(it => it.receive_quantity > 0)
+      .map(it => ({
+        purchase_order_item_id: it.purchase_order_item_id,
+        quantity: parseInt(it.receive_quantity, 10),
+      }));
+
+    if (itemsToReceive.length === 0) {
+      showToast('يجب تحديد كمية استلام أكبر من صفر لصنف واحد على الأقل', 'error');
+      return;
+    }
+
+    try {
+      setReceiveLoading(true);
+      await api.receivePurchaseOrder(receivePOId, {
+        items: itemsToReceive,
+        notes: receiveFormData.notes || undefined,
+        idempotency_key: receiveFormData.idempotency_key || undefined,
+      });
+      showToast('تم استلام البضاعة وتحديث المخزون ومتوسط التكلفة (WAC) بنجاح');
+      setShowReceiveModal(false);
+      if (selectedOrder && selectedOrder.id === receivePOId) {
+        openDetailsModal({ id: receivePOId });
+      }
+      fetchOrders();
+    } catch (err) {
+      showToast(err.message || 'فشل استلام البضاعة', 'error');
+    } finally {
+      setReceiveLoading(false);
     }
   };
 
@@ -661,6 +738,30 @@ export default function AdminPurchaseOrders() {
                             >
                               <CheckCircle2 size={14} />
                               <span>تأكيد</span>
+                            </button>
+                          )}
+
+                          {po.status === 'CONFIRMED' && po.receiving_status !== 'FULLY_RECEIVED' && (
+                            <button
+                              type="button"
+                              onClick={() => openReceiveModal(po)}
+                              title="استلام البضاعة وتحديث المخزون و WAC"
+                              style={{
+                                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                color: '#F59E0B',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              <Package size={14} />
+                              <span>استلام</span>
                             </button>
                           )}
 
@@ -1126,19 +1227,27 @@ export default function AdminPurchaseOrders() {
                       <thead>
                         <tr style={{ backgroundColor: '#1E293B', color: '#94A3B8', borderBottom: '1px solid #334155' }}>
                           <th style={{ padding: '8px 12px' }}>كود / اسم الصنف</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'center' }}>الكمية</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'center' }}>المطلوب</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'center' }}>المستلم</th>
+                          <th style={{ padding: '8px 12px', textAlign: 'center' }}>المتبقي</th>
                           <th style={{ padding: '8px 12px', textAlign: 'left' }}>سعر الوحدة</th>
                           <th style={{ padding: '8px 12px', textAlign: 'left' }}>الإجمالي</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {(selectedOrder.items || []).map((it, idx) => (
+                        {(selectedOrder.items || []).map((it, idx) => {
+                          const ordered = Number(it.quantity || 0);
+                          const received = Number(it.received_quantity || 0);
+                          const remaining = Math.max(0, ordered - received);
+                          return (
                           <tr key={it.id || idx} style={{ borderBottom: '1px solid #334155' }}>
                             <td style={{ padding: '10px 12px' }}>
                               <div style={{ fontWeight: 700, color: '#F8FAFC' }}>{it.product_name}</div>
                               <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>SKU: {it.product_sku || it.product_id}</div>
                             </td>
-                            <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600 }}>{it.quantity}</td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600 }}>{ordered}</td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: received > 0 ? '#10B981' : '#94A3B8' }}>{received}</td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: remaining > 0 ? '#F59E0B' : '#10B981' }}>{remaining}</td>
                             <td style={{ padding: '10px 12px', textAlign: 'left', color: '#CBD5E1' }}>
                               {Number(it.unit_price).toLocaleString()} ج.م
                             </td>
@@ -1146,7 +1255,7 @@ export default function AdminPurchaseOrders() {
                               {Number(it.line_total || it.quantity * it.unit_price).toLocaleString()} ج.م
                             </td>
                           </tr>
-                        ))}
+                        );})}
                       </tbody>
                     </table>
                   </div>
@@ -1191,6 +1300,28 @@ export default function AdminPurchaseOrders() {
                       >
                         <CheckCircle2 size={16} />
                         <span>تأكيد أمر الشراء</span>
+                      </button>
+                    )}
+
+                    {selectedOrder.status === 'CONFIRMED' && selectedOrder.receiving_status !== 'FULLY_RECEIVED' && (
+                      <button
+                        type="button"
+                        onClick={() => openReceiveModal(selectedOrder)}
+                        style={{
+                          backgroundColor: '#F59E0B',
+                          color: '#0F172A',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <Package size={16} />
+                        <span>استلام البضاعة (Receive Goods)</span>
                       </button>
                     )}
 
@@ -1351,6 +1482,187 @@ export default function AdminPurchaseOrders() {
           </div>
         </div>
       )}
+       {/* Receive Modal */}
+       {showReceiveModal && (
+         <div
+           style={{
+             position: 'fixed',
+             inset: 0,
+             backgroundColor: 'rgba(0, 0, 0, 0.8)',
+             backdropFilter: 'blur(4px)',
+             display: 'flex',
+             alignItems: 'center',
+             justifyContent: 'center',
+             zIndex: 10000,
+             padding: '20px',
+           }}
+         >
+           <div
+             style={{
+               backgroundColor: '#1E293B',
+               borderRadius: '16px',
+               border: '1px solid #334155',
+               width: '100%',
+               maxWidth: '500px',
+               padding: '24px',
+             }}
+           >
+             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '0 0 12px 0', color: '#F8FAFC' }}>
+               استلام البضاعة لأمر الشراء ({selectedOrder?.po_number || receivePOId})
+             </h3>
+             <p style={{ color: '#94A3B8', fontSize: '0.88rem', marginBottom: '16px' }}>
+               أنت على وشك استلام الأصناف التالية من أمر الشراء. يرجى مراجعة الكميات والتأكيد.
+             </p>
+             <form onSubmit={handleReceiveSubmit}>
+               <div style={{ marginBottom: '16px' }}>
+                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#E2E8F0', marginBottom: '6px' }}>
+                   الملاحظات (اختياري)
+                 </label>
+                 <textarea
+                   value={receiveFormData.notes}
+                   onChange={(e) => setReceiveFormData(prev => ({ ...prev, notes: e.target.value }))}
+                   placeholder="مثال: تم استلام البضاعة بحالة جيدة وتطابق الفاتورة..."
+                   style={{
+                     width: '100%',
+                     backgroundColor: '#0F172A',
+                     border: '1px solid #334155',
+                     borderRadius: '8px',
+                     padding: '10px 12px',
+                     color: '#F8FAFC',
+                     fontSize: '0.88rem',
+                     outline: 'none',
+                     resize: 'vertical',
+                     minHeight: '80px',
+                   }}
+                 />
+                 {receiveErrors.notes && (
+                   <span style={{ color: '#EF4444', fontSize: '0.75rem', display: 'block', marginTop: '4px' }}>
+                     {receiveErrors.notes}
+                   </span>
+                 )}
+               </div>
+
+               <div style={{ marginBottom: '16px' }}>
+                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#E2E8F0', marginBottom: '6px' }}>
+                   مفتاح التساوي (Idempotency Key) - اختياري
+                 </label>
+                 <input
+                   value={receiveFormData.idempotency_key}
+                   onChange={(e) => setReceiveFormData(prev => ({ ...prev, idempotency_key: e.target.value }))}
+                   placeholder="اتركه فارغًا للتوليد التلقائي أو أدخل قيمة مخصصة لمنع التكرار"
+                   style={{
+                     width: '100%',
+                     backgroundColor: '#0F172A',
+                     border: '1px solid #334155',
+                     borderRadius: '8px',
+                     padding: '10px 12px',
+                     color: '#F8FAFC',
+                     fontSize: '0.88rem',
+                     outline: 'none',
+                   }}
+                 />
+                 {receiveErrors.idempotency_key && (
+                   <span style={{ color: '#EF4444', fontSize: '0.75rem', display: 'block', marginTop: '4px' }}>
+                     {receiveErrors.idempotency_key}
+                   </span>
+                 )}
+               </div>
+
+               <div style={{ backgroundColor: '#0F172A', borderRadius: '8px', border: '1px solid #334155', overflow: 'hidden' }}>
+                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '0.85rem' }}>
+                   <thead>
+                     <tr style={{ backgroundColor: '#1E293B', color: '#94A3B8', borderBottom: '1px solid #334155' }}>
+                       <th style={{ padding: '8px 12px' }}>كود / اسم الصنف</th>
+                       <th style={{ padding: '8px 12px', textAlign: 'center' }}>الكمية المطلوبة</th>
+                       <th style={{ padding: '8px 12px', textAlign: 'center' }}>الكمية المستلمة</th>
+                       <th style={{ padding: '8px 12px', textAlign: 'left' }}>سعر الوحدة</th>
+                       <th style={{ padding: '8px 12px', textAlign: 'left' }}>الإجمالي</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {receiveFormData.items.map((item, idx) => (
+                       <tr key={item.id || idx} style={{ borderBottom: '1px solid #334155' }}>
+                         <td style={{ padding: '10px 12px' }}>
+                           <div style={{ fontWeight: 700, color: '#F8FAFC' }}>{item.product_name}</div>
+                           <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>SKU: {item.product_sku || item.product_id}</div>
+                         </td>
+                         <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600 }}>{item.quantity}</td>
+                         <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                           <input
+                             type="number"
+                             value={item.received_quantity || ''}
+                             onChange={(e) => {
+                               const val = parseInt(e.target.value, 10) || 0;
+                               setReceiveFormData(prev => ({
+                                 ...prev,
+                                 items: prev.items.map((it, i) =>
+                                   i === idx
+                                     ? { ...it, received_quantity: val }
+                                     : it
+                                 ),
+                               }));
+                             }}
+                             min="0"
+                             style={{
+                               width: '100%',
+                               backgroundColor: '#0F172A',
+                               border: '1px solid #334155',
+                               borderRadius: '4px',
+                               padding: '8px',
+                               color: '#F8FAFC',
+                               fontSize: '0.88rem',
+                               textAlign: 'center',
+                             }}
+                           />
+                         </td>
+                         <td style={{ padding: '10px 12px', textAlign: 'left', color: '#CBD5E1' }}>
+                           {Number(item.unit_price).toLocaleString()} ج.م
+                         </td>
+                         <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 800, color: '#38BDF8' }}>
+                           {Number(item.line_total || item.quantity * item.unit_price).toLocaleString()} ج.م
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+
+               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                 <button
+                   type="button"
+                   onClick={() => setShowReceiveModal(false)}
+                   style={{
+                     backgroundColor: '#334155',
+                     color: '#F8FAFC',
+                     border: 'none',
+                     padding: '8px 16px',
+                     borderRadius: '8px',
+                     fontWeight: 600,
+                     cursor: 'pointer',
+                   }}
+                 >
+                   تراجع
+                 </button>
+                 <button
+                   type="submit"
+                   disabled={receiveLoading}
+                   style={{
+                     backgroundColor: receiveLoading ? '#6B7280' : '#10B981',
+                     color: '#FFFFFF',
+                     border: 'none',
+                     padding: '8px 18px',
+                     borderRadius: '8px',
+                     fontWeight: 700,
+                     cursor: receiveLoading ? 'not-allowed' : 'pointer',
+                   }}
+                 >
+                   {receiveLoading ? 'جاري الاستلام...' : 'تأكيد الاستلام'}
+                 </button>
+               </div>
+             </form>
+           </div>
+         </div>
+       )}
     </div>
   );
 }

@@ -2615,4 +2615,367 @@ export const db = {
     };
   },
 
-  };
+  // ── Purchase Order Receiving & WAC (Batch 05) ──
+  async processPurchaseOrderReceiving({
+    purchaseOrderId,
+    items,
+    notes = null,
+    actorId = null,
+    idempotencyKey = null,
+  }) {
+    if (supabaseUrl && supabase) {
+      const { data, error } = await supabase.rpc('process_purchase_order_receiving', {
+        p_purchase_order_id: purchaseOrderId,
+        p_items: items,
+        p_notes: notes,
+        p_actor_id: actorId,
+        p_idempotency_key: idempotencyKey,
+      });
+      if (error) {
+        let parsed = null;
+        try {
+          parsed = JSON.parse(error.message);
+        } catch {
+          // Ignore parse error
+        }
+        if (parsed && parsed.code) {
+          const customErr = new Error(parsed.error || error.message);
+          customErr.code = parsed.code;
+          customErr.details = parsed;
+          throw customErr;
+        }
+        throw error;
+      }
+      return data;
+    }
+
+    // Local Serialized Store Implementation
+    // 1. Idempotency Check
+    if (idempotencyKey && String(idempotencyKey).trim()) {
+      for (const [k, v] of localStore.entries()) {
+        if (k.startsWith('receiving:') && v && v.idempotency_key === idempotencyKey) {
+          return {
+            id: v.id,
+            receiving_number: v.receiving_number,
+            purchase_order_id: v.purchase_order_id,
+            status: v.status,
+            is_duplicate: true,
+            created_at: v.created_at,
+          };
+        }
+      }
+    }
+
+    // 2. Fetch and Validate Purchase Order
+    const po = localStore.get(`purchase_order:${purchaseOrderId}`);
+    if (!po) {
+      const err = new Error('أمر الشراء غير موجود');
+      err.code = 'PO_NOT_FOUND';
+      err.status = 404;
+      throw err;
+    }
+
+    if (po.status !== 'CONFIRMED') {
+      const err = new Error('لا يمكن استلام أمر شراء غير مؤكد أو ملغي أو مغلق');
+      err.code = 'PO_NOT_ELIGIBLE_FOR_RECEIVING';
+      err.status = 400;
+      throw err;
+    }
+
+    if (po.receiving_status === 'FULLY_RECEIVED') {
+      const err = new Error('تم استلام جميع أصناف أمر الشراء بالكامل مسبقاً');
+      err.code = 'PO_ALREADY_FULLY_RECEIVED';
+      err.status = 400;
+      throw err;
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      const err = new Error('يجب تحديد صنف واحد على الأقل للاستلام');
+      err.code = 'EMPTY_RECEIVING_ITEMS';
+      err.status = 400;
+      throw err;
+    }
+
+    const receivingId = `rec-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const year = new Date().getFullYear();
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const receivingNumber = `REC-${year}-${randomSuffix}`;
+
+    const processedItems = [];
+    let totalRecvQty = 0;
+    let totalReceiptVal = 0;
+
+    // Deep clone state snapshot for all-or-nothing rollback safety
+    const snapshot = {
+      products: new Map(),
+      po: JSON.parse(JSON.stringify(po)),
+    };
+
+    try {
+      // First pass: validation
+      for (const it of items) {
+        const poiId = it.purchase_order_item_id || it.poi_id;
+        const recvQty = parseInt(it.quantity, 10);
+
+        if (!poiId) {
+          const err = new Error('معرف بند أمر الشراء غير محدد');
+          err.code = 'MISSING_POI_ID';
+          err.status = 400;
+          throw err;
+        }
+
+        if (isNaN(recvQty) || recvQty <= 0) {
+          const err = new Error('الكمية المستلمة يجب أن تكون 1 أو أكثر');
+          err.code = 'INVALID_RECEIVING_QUANTITY';
+          err.status = 400;
+          throw err;
+        }
+
+        const poItem = (po.items || []).find(x => x.id === poiId);
+        if (!poItem) {
+          const err = new Error('بند أمر الشراء غير موجود في هذا الأمر');
+          err.code = 'POI_NOT_FOUND';
+          err.status = 400;
+          throw err;
+        }
+
+        const alreadyReceived = Number(poItem.received_quantity || 0);
+        const orderedQty = Number(poItem.quantity || 0);
+        if (alreadyReceived + recvQty > orderedQty) {
+          const err = new Error(`الكمية المستلمة (${recvQty}) تتجاوز الكمية المتبقية (${orderedQty - alreadyReceived}) للصنف: ${poItem.product_name}`);
+          err.code = 'OVER_RECEIVING_NOT_ALLOWED';
+          err.status = 400;
+          err.details = {
+            product_name: poItem.product_name,
+            ordered: orderedQty,
+            already_received: alreadyReceived,
+            attempted: recvQty,
+          };
+          throw err;
+        }
+
+        const product = localStore.get(`product:${poItem.product_id}`);
+        if (!product) {
+          const err = new Error('المنتج غير موجود في الكتالوج');
+          err.code = 'PRODUCT_NOT_FOUND';
+          err.status = 404;
+          throw err;
+        }
+
+        if (!snapshot.products.has(product.id)) {
+          snapshot.products.set(product.id, JSON.parse(JSON.stringify(product)));
+        }
+      }
+
+      // Second pass: apply mutations
+      for (const it of items) {
+        const poiId = it.purchase_order_item_id || it.poi_id;
+        const recvQty = parseInt(it.quantity, 10);
+        const poItem = po.items.find(x => x.id === poiId);
+        const product = localStore.get(`product:${poItem.product_id}`);
+
+        const oldQty = product.stock_qty !== undefined ? Number(product.stock_qty) : (Number(product.stock) || 0);
+        const oldCost = product.cost_price !== undefined && product.cost_price !== null ? Number(product.cost_price) : Number(poItem.unit_price);
+        const unitCost = Number(poItem.unit_price);
+        const lineTotal = Math.round(recvQty * unitCost * 100) / 100;
+
+        const newQty = oldQty + recvQty;
+        let newCost = unitCost;
+
+        // WAC formula: (old_qty * old_cost + recv_qty * unit_cost) / new_qty
+        if (oldQty > 0 && product.cost_price !== undefined && product.cost_price !== null) {
+          newCost = Math.round(((oldQty * oldCost + recvQty * unitCost) / newQty) * 100) / 100;
+        }
+
+        // Update Product
+        product.stock_qty = newQty;
+        product.stock = newQty;
+        product.cost_price = newCost;
+        product.updated_at = new Date().toISOString();
+        localStore.set(`product:${product.id}`, product);
+
+        // Update PO Item
+        poItem.received_quantity = (Number(poItem.received_quantity) || 0) + recvQty;
+
+        // Record inventory movement
+        const movementId = `mov-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+        const movement = {
+          id: movementId,
+          product_id: product.id,
+          product_name: product.name,
+          product_sku: product.sku || product.id,
+          type: 'PURCHASE_RECEIPT',
+          quantity_delta: recvQty,
+          stock_before: oldQty,
+          stock_after: newQty,
+          reference_type: 'PURCHASE_RECEIPT',
+          reference_id: receivingId,
+          reason: `Physical receipt for PO ${po.po_number} (${receivingNumber})`,
+          actor_id: actorId || 'staff',
+          created_at: new Date().toISOString(),
+        };
+        localStore.set(`movement:${movementId}`, movement);
+
+        // Receiving item row
+        const receivingItem = {
+          id: `reci-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          receiving_id: receivingId,
+          purchase_order_item_id: poItem.id,
+          product_id: product.id,
+          product_name: poItem.product_name,
+          product_sku: poItem.product_sku,
+          received_quantity: recvQty,
+          unit_cost: unitCost,
+          total_cost: lineTotal,
+          old_stock: oldQty,
+          new_stock: newQty,
+          old_cost_price: oldCost,
+          new_cost_price: newCost,
+          created_at: new Date().toISOString(),
+        };
+        processedItems.push(receivingItem);
+
+        totalRecvQty += recvQty;
+        totalReceiptVal += lineTotal;
+      }
+
+      // Determine PO receiving status & operational status
+      const allFullyReceived = po.items.every(it => (Number(it.received_quantity) || 0) >= Number(it.quantity));
+      po.receiving_status = allFullyReceived ? 'FULLY_RECEIVED' : 'PARTIALLY_RECEIVED';
+      if (allFullyReceived) {
+        po.status = 'CLOSED';
+      }
+      po.updated_at = new Date().toISOString();
+      localStore.set(`purchase_order:${po.id}`, po);
+
+      // Master Receiving Record
+      const receivingRecord = {
+        id: receivingId,
+        receiving_number: receivingNumber,
+        purchase_order_id: po.id,
+        supplier_id: po.supplier_id,
+        supplier_name: po.supplier_name,
+        status: 'COMPLETED',
+        notes: notes || null,
+        received_by: actorId || 'staff',
+        total_items_count: processedItems.length,
+        total_received_qty: totalRecvQty,
+        total_receipt_value: Math.round(totalReceiptVal * 100) / 100,
+        idempotency_key: idempotencyKey || null,
+        items: processedItems,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      localStore.set(`receiving:${receivingId}`, receivingRecord);
+
+      return {
+        id: receivingId,
+        receiving_number: receivingNumber,
+        purchase_order_id: po.id,
+        po_number: po.po_number,
+        supplier_id: po.supplier_id,
+        supplier_name: po.supplier_name,
+        status: 'COMPLETED',
+        total_received_qty: totalRecvQty,
+        total_receipt_value: Math.round(totalReceiptVal * 100) / 100,
+        po_receiving_status: po.receiving_status,
+        po_status: po.status,
+        items: processedItems,
+        created_at: receivingRecord.created_at,
+      };
+    } catch (err) {
+      // Rollback on any failure
+      for (const [prodId, prodData] of snapshot.products.entries()) {
+        localStore.set(`product:${prodId}`, prodData);
+      }
+      localStore.set(`purchase_order:${snapshot.po.id}`, snapshot.po);
+      throw err;
+    }
+  },
+
+  async getReceiving(receivingId) {
+    if (supabaseUrl && supabase) {
+      const { data: rec, error } = await supabase
+        .from('receivings')
+        .select('*')
+        .eq('id', receivingId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!rec) return null;
+
+      const { data: items, error: itemsErr } = await supabase
+        .from('receiving_items')
+        .select('*')
+        .eq('receiving_id', receivingId)
+        .order('created_at', { ascending: true });
+      if (itemsErr) throw itemsErr;
+
+      return { ...rec, items: items || [] };
+    }
+
+    return localStore.get(`receiving:${receivingId}`) || null;
+  },
+
+  async getReceivings(params = {}) {
+    const {
+      purchase_order_id,
+      supplier_id,
+      page = 1,
+      limit = 20,
+    } = params;
+
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+    if (supabaseUrl && supabase) {
+      let query = supabase.from('receivings').select('*', { count: 'exact' });
+      if (purchase_order_id) query = query.eq('purchase_order_id', purchase_order_id);
+      if (supplier_id) query = query.eq('supplier_id', supplier_id);
+
+      const from = (p - 1) * l;
+      const to = from + l - 1;
+      const { data, count, error } = await query.order('created_at', { ascending: false }).range(from, to);
+      if (error) throw error;
+
+      return {
+        data: data || [],
+        pagination: {
+          page: p,
+          limit: l,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / l),
+        },
+      };
+    }
+
+    const list = [];
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('receiving:') && val) {
+        list.push(val);
+      }
+    }
+
+    let filtered = list;
+    if (purchase_order_id) {
+      filtered = filtered.filter(r => r.purchase_order_id === purchase_order_id);
+    }
+    if (supplier_id) {
+      filtered = filtered.filter(r => r.supplier_id === supplier_id);
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const total = filtered.length;
+    const from = (p - 1) * l;
+    const paginated = filtered.slice(from, from + l);
+
+    return {
+      data: paginated,
+      pagination: {
+        page: p,
+        limit: l,
+        total,
+        totalPages: Math.ceil(total / l),
+      },
+    };
+  },
+};
