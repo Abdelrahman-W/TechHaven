@@ -243,6 +243,36 @@ export const api = {
     });
   },
 
+  // ── Inventory Ledger & Movements (Batch 02) ──
+  async getInventoryMovements(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/inventory/movements${qs}`);
+  },
+
+  async getProductStockHistory(productId, params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/inventory/products/${productId}/history${qs}`);
+  },
+
+  async adjustInventory(payload) {
+    return fetchAPI('/inventory/adjust', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
   async deleteProduct(productId) {
     return fetchAPI(`/products/${productId}`, {
       method: 'DELETE',

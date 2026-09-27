@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
+import { InventoryService } from '../lib/inventoryService.js';
 import { requireAuth, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 
 const router = Router();
@@ -179,44 +180,97 @@ router.post('/', requireAuth, requirePermission('products.create'), async (req, 
 // ── PUT /api/products/:id (Admin Only) ────────────────────
 router.put('/:id', requireAuth, requirePermission('products.edit'), async (req, res, next) => {
   try {
-    const updated = await db.updateProduct(req.params.id, req.body);
+    const { id } = req.params;
+    const body = { ...req.body };
+
+    // If stock_qty is explicitly sent and differs, adjust via InventoryService
+    if (body.stock_qty !== undefined && !isNaN(Number(body.stock_qty))) {
+      const current = await db.getProduct(id);
+      if (current) {
+        const currentStock = current.stock_qty !== undefined ? Number(current.stock_qty) : (Number(current.stock) || 0);
+        const targetStock = Math.max(0, parseInt(body.stock_qty, 10));
+        const delta = targetStock - currentStock;
+        if (delta !== 0) {
+          await InventoryService.adjustStock({
+            productId: id,
+            quantityDelta: delta,
+            reason: 'تعديل المخزون من شاشة تعديل بيانات المنتج',
+            actorId: req.user?.id || 'admin',
+            referenceType: 'STOCK_ADJUSTMENT',
+            referenceId: `prod-edit-${Date.now()}`,
+          });
+        }
+      }
+      delete body.stock_qty;
+      delete body.stock;
+    }
+
+    const updated = await db.updateProduct(id, body);
     if (!updated) {
       return res.status(404).json({ error: 'المنتج غير موجود', code: 'NOT_FOUND' });
     }
     invalidateCache('/api/products', { scope: 'products' });
+    invalidateCache(`/api/products/${id}`);
     res.json({ data: updated });
   } catch (err) {
     next(err);
   }
 });
 
-// ── PUT /api/products/:id/stock (Fast Inventory Adjustment) ─
-router.put('/:id/stock', requireAuth, requireAnyPermission(['inventory.adjust', 'products.stock', 'products.edit']), async (req, res, next) => {
+// ── Fast Inventory Adjustment Handlers (PUT /:id/stock & POST /:id/adjust-stock) ─
+const handleFastStockAdjustment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { stock_qty } = req.body;
-    if (stock_qty === undefined || stock_qty === null || isNaN(Number(stock_qty))) {
-      return res.status(400).json({ error: 'يرجى تحديد كمية المخزون بشكل صحيح', code: 'INVALID_QUANTITY' });
+    const { stock_qty, delta, reason } = req.body;
+
+    let quantityDelta;
+    if (delta !== undefined && !isNaN(Number(delta))) {
+      quantityDelta = parseInt(delta, 10);
+    } else if (stock_qty !== undefined && !isNaN(Number(stock_qty))) {
+      const product = await db.getProduct(id);
+      if (!product) {
+        return res.status(404).json({ error: 'المنتج غير موجود', code: 'NOT_FOUND' });
+      }
+      const currentStock = product.stock_qty !== undefined ? Number(product.stock_qty) : (Number(product.stock) || 0);
+      const targetStock = Math.max(0, parseInt(stock_qty, 10));
+      quantityDelta = targetStock - currentStock;
+    } else {
+      return res.status(400).json({ error: 'يرجى تحديد كمية المخزون أو التغير المطلوب بشكل صحيح', code: 'INVALID_QUANTITY' });
     }
-    const qty = Math.max(0, parseInt(stock_qty, 10));
-    const updated = await db.updateProduct(id, {
-      stock_qty: qty,
-      stock: qty,
+
+    if (quantityDelta === 0) {
+      const product = await db.getProduct(id);
+      return res.json({
+        success: true,
+        message: 'الكمية مطابقة للمخزون الحالي دون تغيير',
+        data: { id, stock_qty: product?.stock_qty ?? 0, stock: product?.stock_qty ?? 0 },
+      });
+    }
+
+    const movement = await InventoryService.adjustStock({
+      productId: id,
+      quantityDelta,
+      reason: reason || 'تعديل مخزون سريع من لوحة التحكم',
+      actorId: req.user?.id || 'admin',
+      referenceType: 'STOCK_ADJUSTMENT',
+      referenceId: `adj-${Date.now()}`,
     });
-    if (!updated) {
-      return res.status(404).json({ error: 'المنتج غير موجود', code: 'NOT_FOUND' });
-    }
-    invalidateCache('/api/products', { scope: 'products' });
-    invalidateCache(`/api/products/${id}`);
+
     res.json({
       success: true,
-      message: 'تم تحديث كمية المخزون بنجاح',
-      data: { id, stock_qty: qty },
+      message: 'تم تحديث كمية المخزون وتسجيلها في سجل الحركات بنجاح',
+      data: { id, stock_qty: movement.stock_after, stock: movement.stock_after, movement },
     });
   } catch (err) {
+    if (err.code === 'INSUFFICIENT_STOCK' || err.code === 'INVALID_QUANTITY' || err.code === 'PRODUCT_NOT_FOUND') {
+      return res.status(400).json({ error: err.message, code: err.code, details: err.details || null });
+    }
     next(err);
   }
-});
+};
+
+router.put('/:id/stock', requireAuth, requireAnyPermission(['inventory.adjust', 'products.stock', 'products.edit']), handleFastStockAdjustment);
+router.post('/:id/adjust-stock', requireAuth, requireAnyPermission(['inventory.adjust', 'products.stock', 'products.edit']), handleFastStockAdjustment);
 
 // ── DELETE /api/products/:id (Admin Only) ─────────────────
 router.delete('/:id', requireAuth, requirePermission('products.delete'), async (req, res, next) => {

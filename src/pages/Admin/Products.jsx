@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Package,
+  History,
+  TrendingDown,
   Plus,
   Trash2,
   Edit2,
@@ -48,6 +50,25 @@ export default function Products() {
     thumbnail: '',
     description: '',
   });
+
+  // History Modal State
+  const [historyProduct, setHistoryProduct] = useState(null);
+  const [historyMovements, setHistoryMovements] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openHistoryModal = async (product) => {
+    setHistoryProduct(product);
+    setHistoryLoading(true);
+    try {
+      const res = await api.getProductStockHistory(product.id, { limit: 50 });
+      setHistoryMovements(res?.data || []);
+    } catch (err) {
+      console.error('Failed to load product stock history:', err);
+      setHistoryMovements([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -447,6 +468,28 @@ export default function Products() {
 
                           <button
                             type="button"
+                            onClick={() => openHistoryModal(p)}
+                            style={{
+                              background: 'rgba(56, 189, 248, 0.1)',
+                              border: 'none',
+                              color: '#38BDF8',
+                              padding: '6px 10px',
+                              borderRadius: 4,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                            }}
+                            title="سجل حركات المخزون"
+                          >
+                            <History size={13} />
+                            <span>السجل</span>
+                          </button>
+
+                          <button
+                            type="button"
                             onClick={() => handleDelete(p.id, p.name)}
                             style={{
                               background: 'rgba(239, 68, 68, 0.1)',
@@ -770,6 +813,110 @@ export default function Products() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Product Stock History Modal */}
+      {historyProduct && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 680,
+              backgroundColor: 'var(--bg-card)',
+              borderRadius: 14,
+              border: '1px solid var(--border)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              overflow: 'hidden',
+              direction: 'rtl',
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '1.05rem' }}>
+                  سجل حركات المخزون: {historyProduct.name}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  الرصيد المتاح الحالي: <strong style={{ color: 'var(--brand-orange)' }}>{historyProduct.stock_qty ?? 0}</strong> وحدة
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHistoryProduct(null)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: 16, overflowY: 'auto', flex: 1 }}>
+              {historyLoading ? (
+                <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <div className="spinner" style={{ margin: '0 auto 12px' }} />
+                  جارِ تحميل سجل الحركات...
+                </div>
+              ) : historyMovements.length === 0 ? (
+                <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>
+                  لا توجد حركات مسجلة لهذا المنتج
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {historyMovements.map((m) => (
+                    <div
+                      key={m.id}
+                      style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid var(--border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
+                          {m.type === 'SALE' ? 'مبيعات طلب' : m.type === 'INITIAL_IMPORT' ? 'رصيد افتتاحي' : m.type === 'ADJUSTMENT_IN' ? 'إضافة مخزون' : m.type === 'ADJUSTMENT_OUT' ? 'خصم مخزون' : m.type}
+                          <span style={{ marginRight: 8, color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                            ({new Date(m.created_at).toLocaleString('ar-EG')})
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                          {m.reason || m.reference_type}
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'left', fontFamily: 'var(--font-mono)' }}>
+                        <div style={{ fontWeight: 900, color: m.quantity_delta > 0 ? '#10B981' : '#EF4444' }}>
+                          {m.quantity_delta > 0 ? `+${m.quantity_delta}` : m.quantity_delta}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {m.stock_before} ← {m.stock_after}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

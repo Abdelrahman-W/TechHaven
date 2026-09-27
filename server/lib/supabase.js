@@ -51,7 +51,7 @@ let storeWriteQueue = Promise.resolve();
 const LOCK_FILE = path.join(path.dirname(DB_FILE), '.store.lock');
 let storeLockCounter = 0; // process-local guard against self-deadlock
 
-async function acquireStoreLock(timeoutMs = 3000) {
+async function acquireStoreLock(timeoutMs = 8000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     storeLockCounter++;
@@ -66,10 +66,10 @@ async function acquireStoreLock(timeoutMs = 3000) {
       return true;
     } catch (err) {
       if (err.code !== 'EEXIST') throw err;
-      // Stale lock? If older than 10s, steal it (crash recovery).
+      // Stale lock? If older than 5s, steal it (crash recovery).
       try {
         const st = await fs.promises.stat(LOCK_FILE);
-        if (Date.now() - st.mtimeMs > 10000) {
+        if (Date.now() - st.mtimeMs > 5000) {
           await fs.promises.unlink(LOCK_FILE);
           continue;
         }
@@ -1579,6 +1579,8 @@ export const db = {
       productsToUpdate.push({
         product,
         pId,
+        availableStock,
+        totalQty,
         newStock: availableStock - totalQty
       });
     }
@@ -1644,13 +1646,30 @@ export const db = {
       updated_at: new Date().toISOString()
     };
 
-    // Apply stock updates
-    for (const { product, pId, newStock } of productsToUpdate) {
+    // Apply stock updates and record atomic SALE movements
+    for (const { product, pId, availableStock, totalQty, newStock } of productsToUpdate) {
       localStore.set(`product:${pId}`, {
         ...product,
         stock_qty: newStock,
         stock: newStock,
         updated_at: new Date().toISOString()
+      });
+
+      const movId = `mov-${Date.now()}-${Math.random().toString(36).substr(2, 7)}`;
+      localStore.set(`movement:${movId}`, {
+        id: movId,
+        product_id: pId,
+        product_name: product.name,
+        product_sku: product.sku || pId,
+        type: 'SALE',
+        quantity_delta: -totalQty,
+        stock_before: availableStock,
+        stock_after: newStock,
+        reference_type: 'ORDER',
+        reference_id: orderId,
+        reason: `Order checkout sale: ${orderRef}`,
+        actor_id: user_id || 'customer',
+        created_at: new Date().toISOString()
       });
     }
 
@@ -1995,6 +2014,222 @@ export const db = {
     if (!user) return [];
     const role = SEED_ROLES.find(r => r.code === user.role);
     return role ? role.permissions : [];
+  },
+
+  // ── Inventory Ledger & Atomic Movements (Batch 02) ──
+  async adjustProductInventory({
+    productId,
+    quantityDelta,
+    type = 'ADJUSTMENT_IN',
+    reason = '',
+    actorId = null,
+    referenceType = 'STOCK_ADJUSTMENT',
+    referenceId = null,
+  }) {
+    if (supabaseUrl && supabase) {
+      const { data, error } = await supabase.rpc('adjust_product_inventory', {
+        p_product_id: productId,
+        p_quantity_delta: quantityDelta,
+        p_type: type,
+        p_reason: reason,
+        p_actor_id: actorId,
+        p_reference_type: referenceType,
+        p_reference_id: referenceId,
+      });
+      if (error) {
+        let parsed = null;
+        try {
+          parsed = JSON.parse(error.message);
+        } catch {}
+        if (parsed && parsed.code) {
+          const customErr = new Error(parsed.error || error.message);
+          customErr.code = parsed.code;
+          customErr.details = parsed;
+          throw customErr;
+        }
+        throw error;
+      }
+      return data;
+    }
+
+    // Local atomic store path
+    const product = localStore.get(`product:${productId}`);
+    if (!product) {
+      const err = new Error(`المنتج غير موجود: ${productId}`);
+      err.code = 'PRODUCT_NOT_FOUND';
+      throw err;
+    }
+
+    const currentStock = product.stock_qty !== undefined
+      ? Number(product.stock_qty)
+      : (Number(product.stock) || 0);
+
+    const newStock = currentStock + quantityDelta;
+    if (newStock < 0) {
+      const err = new Error(`لا يمكن أن يصبح المخزون سالباً. المتاح حالياً: ${currentStock}`);
+      err.code = 'INSUFFICIENT_STOCK';
+      err.details = {
+        productId,
+        productName: product.name,
+        currentStock,
+        requestedDelta: quantityDelta,
+      };
+      throw err;
+    }
+
+    const movementId = `mov-${Date.now()}-${Math.random().toString(36).substr(2, 7)}`;
+    const movement = {
+      id: movementId,
+      product_id: productId,
+      product_name: product.name,
+      product_sku: product.sku || productId,
+      type,
+      quantity_delta: quantityDelta,
+      stock_before: currentStock,
+      stock_after: newStock,
+      reference_type: referenceType || 'STOCK_ADJUSTMENT',
+      reference_id: referenceId || movementId,
+      reason: reason || '',
+      actor_id: actorId || null,
+      created_at: new Date().toISOString(),
+    };
+
+    localStore.set(`product:${productId}`, {
+      ...product,
+      stock_qty: newStock,
+      stock: newStock,
+      updated_at: new Date().toISOString(),
+    });
+    localStore.set(`movement:${movementId}`, movement);
+    saveStoreToDisk();
+
+    return movement;
+  },
+
+  async getInventoryMovements({
+    productId,
+    type,
+    referenceType,
+    actorId,
+    startDate,
+    endDate,
+    page = 1,
+    limit = 20,
+  } = {}) {
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
+
+    if (supabaseUrl && supabase) {
+      let query = supabase.from('inventory_movements').select('*', { count: 'exact' });
+      if (productId) query = query.eq('product_id', productId);
+      if (type) query = query.eq('type', type);
+      if (referenceType) query = query.eq('reference_type', referenceType);
+      if (actorId) query = query.eq('actor_id', actorId);
+      if (startDate) query = query.gte('created_at', startDate);
+      if (endDate) query = query.lte('created_at', endDate);
+
+      const from = (p - 1) * l;
+      const to = from + l - 1;
+      const { data, count, error } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      const total = count || 0;
+      return {
+        data: data || [],
+        pagination: {
+          page: p,
+          limit: l,
+          total,
+          totalPages: Math.ceil(total / l),
+        },
+      };
+    }
+
+    // Local store path
+    const movements = [];
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('movement:')) {
+        movements.push(val);
+      }
+    }
+
+    // Dynamically include INITIAL_IMPORT movements for products that don't have one recorded yet
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('product:') && val && val.id) {
+        const prod = val;
+        const stock = Number(prod.stock_qty !== undefined ? prod.stock_qty : (prod.stock || 0));
+        const hasInitialImport = movements.some(m => m.product_id === prod.id && m.type === 'INITIAL_IMPORT');
+        if (!hasInitialImport && stock > 0) {
+          movements.push({
+            id: `mov-init-${prod.id}`,
+            product_id: prod.id,
+            product_name: prod.name,
+            product_sku: prod.sku || prod.id,
+            type: 'INITIAL_IMPORT',
+            quantity_delta: stock,
+            stock_before: 0,
+            stock_after: stock,
+            reference_type: 'MIGRATION',
+            reference_id: 'migration_b02_initial_import',
+            reason: 'Initial inventory ledger import of existing stock',
+            actor_id: 'system',
+            created_at: prod.created_at || '2026-09-01T00:00:00.000Z'
+          });
+        }
+      }
+    }
+
+    let filtered = movements;
+    if (productId) {
+      filtered = filtered.filter(m => m.product_id === productId);
+    }
+    if (type) {
+      filtered = filtered.filter(m => m.type === type);
+    }
+    if (referenceType) {
+      filtered = filtered.filter(m => m.reference_type === referenceType);
+    }
+    if (actorId) {
+      filtered = filtered.filter(m => m.actor_id === actorId);
+    }
+    if (startDate) {
+      filtered = filtered.filter(m => new Date(m.created_at) >= new Date(startDate));
+    }
+    if (endDate) {
+      filtered = filtered.filter(m => new Date(m.created_at) <= new Date(endDate));
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    const total = filtered.length;
+    const from = (p - 1) * l;
+    const paginated = filtered.slice(from, from + l);
+
+    const enriched = paginated.map(m => {
+      if (!m.product_name) {
+        const prod = localStore.get(`product:${m.product_id}`);
+        if (prod) {
+          return {
+            ...m,
+            product_name: prod.name,
+            product_sku: prod.sku || m.product_id,
+          };
+        }
+      }
+      return m;
+    });
+
+    return {
+      data: enriched,
+      pagination: {
+        page: p,
+        limit: l,
+        total,
+        totalPages: Math.ceil(total / l),
+      },
+    };
   },
 
   };

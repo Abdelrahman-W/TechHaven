@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
 import { requireAuth, requirePermission, getOptionalUser } from '../middleware/auth.js';
+import { invalidateCache } from '../middleware/cache.js';
 
 const router = Router();
 
@@ -241,6 +242,14 @@ router.post('/', async (req, res, next) => {
 
     // Execute atomic checkout transaction (RPC in Supabase, atomic memory/disk transaction in local fallback)
     const created = await db.processOrderCheckout(orderPayload);
+
+    // Invalidate product & inventory caches
+    invalidateCache('/api/products', { scope: 'products' });
+    for (const it of items) {
+      const pId = it.productId || it.product_id || it.id;
+      if (pId) invalidateCache(`/api/products/${pId}`);
+    }
+    invalidateCache('/api/inventory/movements');
 
     // Clear cart if authenticated
     if (user?.userId) {

@@ -12,6 +12,7 @@ import { rateLimiter, authLimiter, adminLimiter } from './middleware/rateLimiter
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
+import inventoryRoutes from './routes/inventory.js';
 import categoriesRoutes from './routes/categories.js';
 import orderRoutes from './routes/orders.js';
 import cartRoutes from './routes/cart.js';
@@ -160,6 +161,7 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
   app.use('/api/auth', authRoutes);
   app.use('/api/products', productRoutes);
   app.use('/api/categories', categoriesRoutes);
+  app.use('/api/inventory', inventoryRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/cart', cartRoutes);
 

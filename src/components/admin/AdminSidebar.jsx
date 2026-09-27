@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
+  History,
   Package,
   ShoppingBag,
   Users,
@@ -19,6 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'لوحة التحكم' },
   { to: '/admin/products', icon: Package, label: 'إدارة المنتجات' },
+  { to: '/admin/inventory', icon: History, label: 'حركة المخزون' },
   { to: '/admin/orders', icon: ShoppingBag, label: 'الطلبات والشحن' },
   { to: '/admin/users', icon: Users, label: 'العملاء والمستخدمين' },
   { to: '/admin/categories', icon: Tags, label: 'الفئات والأقسام' },
