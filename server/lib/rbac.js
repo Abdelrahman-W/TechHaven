@@ -9,6 +9,8 @@ export const PERMISSIONS = {
   PRODUCTS_CREATE: 'products.create',
   PRODUCTS_EDIT: 'products.edit',
   PRODUCTS_DELETE: 'products.delete',
+  PRODUCTS_COST_VIEW: 'products.cost.view',
+  PRODUCTS_COST_MANAGE: 'products.cost.manage',
 
   // Categories
   CATEGORIES_VIEW: 'categories.view',
@@ -97,7 +99,7 @@ export const ROLE_DEFINITIONS = [
       'purchasing.view', 'purchasing.create', 'purchasing.receive',
       'b2b.view', 'b2b.manage',
       'reviews.view', 'reviews.moderate',
-      'reports.sales', 'reports.inventory',
+      'reports.sales', 'reports.profit', 'reports.inventory', 'products.cost.view', 'products.cost.manage',
       'users.view',
       'settings.view',
       'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view',

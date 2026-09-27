@@ -1592,6 +1592,9 @@ export const db = {
       const product = localStore.get(`product:${pId}`);
       const qty = parseInt(it.quantity, 10);
       const authPrice = Number(product.price) || 0;
+      const authCost = (product.cost_price !== undefined && product.cost_price !== null && !isNaN(Number(product.cost_price)))
+        ? Number(product.cost_price)
+        : null;
       const itemTotal = authPrice * qty;
       calculatedSubtotal += itemTotal;
 
@@ -1603,7 +1606,9 @@ export const db = {
         product_image: product.thumbnail || product.images?.[0] || null,
         quantity: qty,
         unit_price: authPrice,
+        unit_cost: authCost,
         total_price: itemTotal,
+        total_cost: authCost !== null ? authCost * qty : null,
         specs_snapshot: it.specs_snapshot || {}
       });
     }
@@ -2037,11 +2042,13 @@ export const db = {
         p_reference_id: referenceId,
       });
       if (error) {
-        let parsed = null;
-        try {
-          parsed = JSON.parse(error.message);
-        } catch {}
-        if (parsed && parsed.code) {
+              let parsed = null;
+              try {
+                parsed = JSON.parse(error.message);
+              } catch {
+                // Ignore parse error, keep parsed as null
+              }
+              if (parsed && parsed.code) {
           const customErr = new Error(parsed.error || error.message);
           customErr.code = parsed.code;
           customErr.details = parsed;

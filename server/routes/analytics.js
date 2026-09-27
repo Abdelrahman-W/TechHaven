@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
 import { requireAuth, requireAdmin, requirePermission } from '../middleware/auth.js';
+import CogsService from '../lib/cogsService.js';
 
 const router = Router();
 
@@ -62,6 +63,29 @@ router.get('/revenue', requirePermission('reports.sales'), async (req, res, next
     }));
     
     res.json({ data: chartData });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/analytics/profit ─────────────────────────────
+router.get('/profit', requirePermission('reports.profit'), async (req, res, next) => {
+  try {
+    const { period = '30d' } = req.query; // 7d, 30d, 90d
+    let days = 30;
+    if (period === '7d') days = 7;
+    if (period === '90d') days = 90;
+    
+    const orders = await (db.getOrders ? db.getOrders() : Promise.resolve([]));
+    
+    const now = new Date();
+    const cutoffDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+    
+    const recentOrders = orders.filter(o => new Date(o.created_at) >= cutoffDate);
+    
+    const analytics = CogsService.calculateAggregateProfit(recentOrders);
+    
+    res.json({ data: analytics });
   } catch (err) {
     next(err);
   }
