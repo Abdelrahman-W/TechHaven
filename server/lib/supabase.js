@@ -271,6 +271,35 @@ export const SEED_ROLES = [
   },
 ];
 
+export const SEED_SUPPLIERS = [
+  {
+    id: 'sup-cairo-tech',
+    name: 'Cairo Tech Distribution (التقنية لتوزيع الهاردوير)',
+    contact_name: 'Eng. Hany Mostafa',
+    phone: '01012345678',
+    email: 'hany@cairotech-eg.com',
+    address: '15 El-Bostan St, Downtown, Cairo',
+    tax_number: '100-234-567',
+    notes: 'Primary GPU & Motherboard distributor (ASUS, MSI)',
+    is_active: true,
+    created_at: '2026-01-10T10:00:00.000Z',
+    updated_at: '2026-01-10T10:00:00.000Z',
+  },
+  {
+    id: 'sup-delta-micro',
+    name: 'Delta Micro Computers (دلتا مايكرو)',
+    contact_name: 'Mohamed Tarek',
+    phone: '01223456789',
+    email: 'sales@deltamicro.com',
+    address: 'Technology Mall, Nasr City, Cairo',
+    tax_number: '200-345-678',
+    notes: 'Authorized Intel, AMD & Kingston storage distributor',
+    is_active: true,
+    created_at: '2026-01-15T11:00:00.000Z',
+    updated_at: '2026-01-15T11:00:00.000Z',
+  }
+];
+
 // Seed Products (Exact Flagship Products from TechHaven Reference Design + Category Champions)
 export const SEED_PRODUCTS = [
   {
@@ -2236,6 +2265,353 @@ export const db = {
         total,
         totalPages: Math.ceil(total / l),
       },
+    };
+  },
+
+  // ── Suppliers (Batch 04) ──────────────────────────────────
+  async createSupplier(supplierData) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .insert(supplierData)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    localStore.set(`supplier:${supplierData.id}`, supplierData);
+    await saveStoreToDisk();
+    return supplierData;
+  },
+
+  async updateSupplier(id, updates) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    const current = localStore.get(`supplier:${id}`);
+    if (!current) return null;
+    const updated = { ...current, ...updates };
+    localStore.set(`supplier:${id}`, updated);
+    await saveStoreToDisk();
+    return updated;
+  },
+
+  async getSupplier(id) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || null;
+    }
+
+    const found = localStore.get(`supplier:${id}`);
+    if (found) return found;
+
+    const seed = SEED_SUPPLIERS.find(s => s.id === id);
+    return seed || null;
+  },
+
+  async getSuppliers(options = {}) {
+    const { search, isActive, page = 1, limit = 50 } = options;
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+
+    if (isSupabaseConfigured) {
+      let query = supabase.from('suppliers').select('*', { count: 'exact' });
+      if (isActive !== undefined && isActive !== '') {
+        query = query.eq('is_active', isActive === 'true' || isActive === true);
+      }
+      if (search) {
+        query = query.ilike('name', `%${search}%`);
+      }
+      const from = (p - 1) * l;
+      const to = from + l - 1;
+      const { data, count, error } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+
+      return {
+        data: data || [],
+        pagination: {
+          page: p,
+          limit: l,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / l),
+        }
+      };
+    }
+
+    // Local store
+    const list = [];
+    const seenIds = new Set();
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('supplier:') && val) {
+        list.push(val);
+        seenIds.add(val.id);
+      }
+    }
+    for (const s of SEED_SUPPLIERS) {
+      if (!seenIds.has(s.id)) {
+        list.push(s);
+      }
+    }
+
+    let filtered = list;
+    if (isActive !== undefined && isActive !== '') {
+      const boolActive = isActive === 'true' || isActive === true;
+      filtered = filtered.filter(s => Boolean(s.is_active) === boolActive);
+    }
+    if (search) {
+      const q = String(search).toLowerCase();
+      filtered = filtered.filter(s =>
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.contact_name && s.contact_name.toLowerCase().includes(q)) ||
+        (s.phone && s.phone.includes(q)) ||
+        (s.email && s.email.toLowerCase().includes(q))
+      );
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const total = filtered.length;
+    const from = (p - 1) * l;
+    const paginated = filtered.slice(from, from + l);
+
+    return {
+      data: paginated,
+      pagination: {
+        page: p,
+        limit: l,
+        total,
+        totalPages: Math.ceil(total / l),
+      }
+    };
+  },
+
+  async deleteSupplier(id) {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase.from('suppliers').delete().eq('id', id);
+      if (error) throw error;
+      return true;
+    }
+
+    localStore.delete(`supplier:${id}`);
+    await saveStoreToDisk();
+    return true;
+  },
+
+  // ── Purchase Orders (Batch 04) ────────────────────────────
+  async createPurchaseOrder(poData) {
+    if (isSupabaseConfigured) {
+      const { items, ...poFields } = poData;
+      const { data: createdPo, error: poError } = await supabase
+        .from('purchase_orders')
+        .insert(poFields)
+        .select()
+        .single();
+      if (poError) throw poError;
+
+      if (items && items.length > 0) {
+        const itemRows = items.map(it => ({
+          ...it,
+          purchase_order_id: createdPo.id,
+        }));
+        const { error: itemsError } = await supabase
+          .from('purchase_order_items')
+          .insert(itemRows);
+        if (itemsError) throw itemsError;
+      }
+
+      return {
+        ...createdPo,
+        items: items || [],
+      };
+    }
+
+    localStore.set(`purchase_order:${poData.id}`, poData);
+    if (poData.items) {
+      for (const it of poData.items) {
+        localStore.set(`po_item:${it.id}`, { ...it, purchase_order_id: poData.id });
+      }
+    }
+    await saveStoreToDisk();
+    return poData;
+  },
+
+  async updatePurchaseOrder(id, updates) {
+    if (isSupabaseConfigured) {
+      const { items, ...poFields } = updates;
+      const { data, error } = await supabase
+        .from('purchase_orders')
+        .update(poFields)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+
+      if (items) {
+        await supabase.from('purchase_order_items').delete().eq('purchase_order_id', id);
+        const itemRows = items.map(it => ({
+          ...it,
+          purchase_order_id: id,
+        }));
+        await supabase.from('purchase_order_items').insert(itemRows);
+      }
+
+      return {
+        ...data,
+        items: items || [],
+      };
+    }
+
+    const current = localStore.get(`purchase_order:${id}`);
+    if (!current) return null;
+
+    const updated = { ...current, ...updates };
+    localStore.set(`purchase_order:${id}`, updated);
+
+    if (updates.items) {
+      for (const [key, val] of localStore.entries()) {
+        if (key.startsWith('po_item:') && val.purchase_order_id === id) {
+          localStore.delete(key);
+        }
+      }
+      for (const it of updates.items) {
+        localStore.set(`po_item:${it.id}`, { ...it, purchase_order_id: id });
+      }
+    }
+
+    await saveStoreToDisk();
+    return updated;
+  },
+
+  async getPurchaseOrder(id) {
+    if (isSupabaseConfigured) {
+      const { data: po, error } = await supabase
+        .from('purchase_orders')
+        .select('*, supplier:suppliers(*)')
+        .eq('id', id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      if (!po) return null;
+
+      const { data: items } = await supabase
+        .from('purchase_order_items')
+        .select('*')
+        .eq('purchase_order_id', id);
+
+      return {
+        ...po,
+        items: items || [],
+      };
+    }
+
+    const po = localStore.get(`purchase_order:${id}`);
+    if (!po) return null;
+
+    let items = po.items;
+    if (!items || items.length === 0) {
+      items = [];
+      for (const [key, val] of localStore.entries()) {
+        if (key.startsWith('po_item:') && val.purchase_order_id === id) {
+          items.push(val);
+        }
+      }
+    }
+
+    const supplier = await this.getSupplier(po.supplier_id);
+
+    return {
+      ...po,
+      supplier,
+      items: items || [],
+    };
+  },
+
+  async getPurchaseOrders(options = {}) {
+    const { supplier_id, status, search, startDate, endDate, page = 1, limit = 50 } = options;
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+
+    if (isSupabaseConfigured) {
+      let query = supabase.from('purchase_orders').select('*, supplier:suppliers(name)', { count: 'exact' });
+      if (supplier_id) query = query.eq('supplier_id', supplier_id);
+      if (status) query = query.eq('status', status);
+      if (search) query = query.ilike('po_number', `%${search}%`);
+      if (startDate) query = query.gte('created_at', startDate);
+      if (endDate) query = query.lte('created_at', endDate);
+
+      const from = (p - 1) * l;
+      const to = from + l - 1;
+      const { data, count, error } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+
+      return {
+        data: data || [],
+        pagination: {
+          page: p,
+          limit: l,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / l),
+        }
+      };
+    }
+
+    const list = [];
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('purchase_order:') && val) {
+        list.push(val);
+      }
+    }
+
+    let filtered = list;
+    if (supplier_id) {
+      filtered = filtered.filter(po => po.supplier_id === supplier_id);
+    }
+    if (status) {
+      filtered = filtered.filter(po => po.status === status);
+    }
+    if (search) {
+      const q = String(search).toLowerCase();
+      filtered = filtered.filter(po =>
+        (po.po_number && po.po_number.toLowerCase().includes(q)) ||
+        (po.supplier_name && po.supplier_name.toLowerCase().includes(q))
+      );
+    }
+    if (startDate) {
+      filtered = filtered.filter(po => new Date(po.created_at) >= new Date(startDate));
+    }
+    if (endDate) {
+      filtered = filtered.filter(po => new Date(po.created_at) <= new Date(endDate));
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const total = filtered.length;
+    const from = (p - 1) * l;
+    const paginated = filtered.slice(from, from + l);
+
+    return {
+      data: paginated,
+      pagination: {
+        page: p,
+        limit: l,
+        total,
+        totalPages: Math.ceil(total / l),
+      }
     };
   },
 

@@ -32,7 +32,16 @@ export const PERMISSIONS = {
   // Purchasing & Procurement
   PURCHASING_VIEW: 'purchasing.view',
   PURCHASING_CREATE: 'purchasing.create',
+  PURCHASING_EDIT: 'purchasing.edit',
+  PURCHASING_APPROVE: 'purchasing.approve',
+  PURCHASING_CANCEL: 'purchasing.cancel',
   PURCHASING_RECEIVE: 'purchasing.receive',
+
+  // Suppliers
+  SUPPLIERS_VIEW: 'suppliers.view',
+  SUPPLIERS_CREATE: 'suppliers.create',
+  SUPPLIERS_EDIT: 'suppliers.edit',
+  SUPPLIERS_DELETE: 'suppliers.delete',
 
   // Reports & Business Intelligence
   REPORTS_SALES: 'reports.sales',
@@ -68,6 +77,8 @@ export const PERMISSIONS = {
   ADMIN_CATEGORIES_VIEW: 'admin.categories.view',
   ADMIN_ANALYTICS_VIEW: 'admin.analytics.view',
   ADMIN_SETTINGS_VIEW: 'admin.settings.view',
+  ADMIN_SUPPLIERS_VIEW: 'admin.suppliers.view',
+  ADMIN_PURCHASING_VIEW: 'admin.purchasing.view',
 };
 
 export const ROLES = {
@@ -96,13 +107,14 @@ export const ROLE_DEFINITIONS = [
       'categories.view', 'categories.create', 'categories.edit', 'categories.delete',
       'orders.view', 'orders.edit', 'orders.cancel', 'orders.export',
       'inventory.view', 'inventory.adjust', 'inventory.movements',
-      'purchasing.view', 'purchasing.create', 'purchasing.receive',
+      'suppliers.view', 'suppliers.create', 'suppliers.edit', 'suppliers.delete',
+      'purchasing.view', 'purchasing.create', 'purchasing.edit', 'purchasing.approve', 'purchasing.cancel', 'purchasing.receive',
       'b2b.view', 'b2b.manage',
       'reviews.view', 'reviews.moderate',
       'reports.sales', 'reports.profit', 'reports.inventory', 'products.cost.view', 'products.cost.manage',
       'users.view',
       'settings.view',
-      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view',
+      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.suppliers.view', 'admin.purchasing.view',
     ],
   },
   {
@@ -113,9 +125,9 @@ export const ROLE_DEFINITIONS = [
     permissions: [
       'products.view',
       'inventory.view', 'inventory.adjust', 'inventory.movements',
-      'purchasing.view', 'purchasing.receive',
+      'suppliers.view', 'purchasing.view', 'purchasing.create', 'purchasing.receive',
       'reports.inventory',
-      'admin.dashboard.view',
+      'admin.dashboard.view', 'admin.purchasing.view',
     ],
   },
   {

@@ -273,6 +273,98 @@ export const api = {
     });
   },
 
+  // ── Suppliers & Purchasing (Batch 04) ──
+  async getSuppliers(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/suppliers${qs}`);
+  },
+
+  async getSupplier(id) {
+    return fetchAPI(`/suppliers/${id}`);
+  },
+
+  async createSupplier(data) {
+    return fetchAPI('/suppliers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateSupplier(id, data) {
+    return fetchAPI(`/suppliers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deactivateSupplier(id) {
+    return fetchAPI(`/suppliers/${id}/deactivate`, {
+      method: 'POST',
+    });
+  },
+
+  async deleteSupplier(id) {
+    return fetchAPI(`/suppliers/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async getPurchaseOrders(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/purchasing/orders${qs}`);
+  },
+
+  async getPurchaseOrder(id) {
+    return fetchAPI(`/purchasing/orders/${id}`);
+  },
+
+  async createPurchaseOrder(data) {
+    return fetchAPI('/purchasing/orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updatePurchaseOrder(id, data) {
+    return fetchAPI(`/purchasing/orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async confirmPurchaseOrder(id, reason) {
+    return fetchAPI(`/purchasing/orders/${id}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  async cancelPurchaseOrder(id, reason) {
+    return fetchAPI(`/purchasing/orders/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  async closePurchaseOrder(id, reason) {
+    return fetchAPI(`/purchasing/orders/${id}/close`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
   async deleteProduct(productId) {
     return fetchAPI(`/products/${productId}`, {
       method: 'DELETE',

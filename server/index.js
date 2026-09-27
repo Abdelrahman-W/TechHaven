@@ -14,6 +14,8 @@ import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import inventoryRoutes from './routes/inventory.js';
 import categoriesRoutes from './routes/categories.js';
+import supplierRoutes from './routes/suppliers.js';
+import purchasingRoutes from './routes/purchasing.js';
 import orderRoutes from './routes/orders.js';
 import cartRoutes from './routes/cart.js';
 import b2bRoutes from './routes/b2b.js';
@@ -162,6 +164,8 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
   app.use('/api/products', productRoutes);
   app.use('/api/categories', categoriesRoutes);
   app.use('/api/inventory', inventoryRoutes);
+  app.use('/api/suppliers', supplierRoutes);
+  app.use('/api/purchasing', purchasingRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/cart', cartRoutes);
 
