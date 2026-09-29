@@ -170,6 +170,91 @@ export const api = {
     });
   },
 
+  // ── B2B Customer Balances (Batch 07) ──
+  async getB2BBalancesSummary() {
+    return fetchAPI('/b2b/balances/summary');
+  },
+
+  async getB2BCustomers(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/b2b/customers${qs}`);
+  },
+
+  async getB2BCustomer(id) {
+    return fetchAPI(`/b2b/customers/${id}`);
+  },
+
+  async getB2BCustomerBalance(id) {
+    return fetchAPI(`/b2b/customers/${id}/balance`);
+  },
+
+  async createB2BCustomer(data) {
+    return fetchAPI('/b2b/customers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateB2BCustomerSettings(id, settings) {
+    return fetchAPI(`/b2b/customers/${id}/settings`, {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  },
+
+  async updateB2BCustomerAccountStatus(id, status, notes = '') {
+    return fetchAPI(`/b2b/customers/${id}/account-status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    });
+  },
+
+  async getB2BCustomerTransactions(id, params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/b2b/customers/${id}/transactions${qs}`);
+  },
+
+  async recordB2BPayment(id, payload) {
+    return fetchAPI(`/b2b/customers/${id}/payments`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async recordB2BAdjustment(id, payload) {
+    return fetchAPI(`/b2b/customers/${id}/adjustments`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getMyB2BBalance() {
+    return fetchAPI('/b2b/me/balance');
+  },
+
+  async getMyB2BTransactions(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/b2b/me/transactions${qs}`);
+  },
+
   // ── Admin ──
   async getAdminStats() {
     return fetchAPI('/admin/stats');

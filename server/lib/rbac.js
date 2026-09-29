@@ -53,6 +53,10 @@ export const PERMISSIONS = {
   // B2B Corporate
   B2B_VIEW: 'b2b.view',
   B2B_MANAGE: 'b2b.manage',
+  B2B_BALANCE_VIEW: 'b2b.balance.view',
+  B2B_BALANCE_MANAGE: 'b2b.balance.manage',
+  B2B_PAYMENTS_RECORD: 'b2b.payments.record',
+  B2B_ADJUSTMENTS_MANAGE: 'b2b.adjustments.manage',
 
   // Reviews
   REVIEWS_VIEW: 'reviews.view',
@@ -113,6 +117,7 @@ export const ROLE_DEFINITIONS = [
       'suppliers.view', 'suppliers.create', 'suppliers.edit', 'suppliers.delete',
       'purchasing.view', 'purchasing.create', 'purchasing.edit', 'purchasing.approve', 'purchasing.cancel', 'purchasing.receive',
       'b2b.view', 'b2b.manage',
+      'b2b.balance.view', 'b2b.balance.manage', 'b2b.payments.record', 'b2b.adjustments.manage',
       'reviews.view', 'reviews.moderate',
       'reports.sales', 'reports.profit', 'reports.inventory', 'products.cost.view', 'products.cost.manage',
       'users.view',

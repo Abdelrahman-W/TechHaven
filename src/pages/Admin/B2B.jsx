@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Building2,
   Search,
@@ -15,6 +15,15 @@ import {
   X,
   MessageSquare,
   AlertCircle,
+  PlusCircle,
+  CreditCard,
+  Sliders,
+  History,
+  ShieldCheck,
+  AlertTriangle,
+  ArrowUpRight,
+  ArrowDownLeft,
+  XCircle,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { formatEGP } from '../../lib/utils';
@@ -26,6 +35,12 @@ const B2B_STATUS_CONFIG = {
   contracted: { label: 'تم التعاقد', color: '#10B981', bg: 'rgba(16, 185, 129, 0.12)' },
   closed: { label: 'مكتمل', color: '#9CA3AF', bg: 'rgba(156, 163, 175, 0.12)' },
   cancelled: { label: 'ملغي', color: '#EF4444', bg: 'rgba(239, 68, 68, 0.12)' },
+};
+
+const ACCOUNT_STATUS_CONFIG = {
+  ACTIVE: { label: 'نشط (Active)', color: '#10B981', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.3)' },
+  SUSPENDED: { label: 'موقوف (Suspended)', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.3)' },
+  CLOSED: { label: 'مغلق (Closed)', color: '#EF4444', bg: 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.3)' },
 };
 
 export default function AdminB2B() {

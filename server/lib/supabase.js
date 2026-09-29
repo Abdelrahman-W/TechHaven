@@ -2978,4 +2978,252 @@ export const db = {
       },
     };
   },
+
+  // ── B2B Customer Balances (Batch 07) ────────────────────────
+  async createB2BCustomer(customerData) {
+    const record = {
+      id: customerData.id || `b2b-cust-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      user_id: customerData.user_id || null,
+      company_name: customerData.company_name || customerData.companyName,
+      contact_person: customerData.contact_person || customerData.contactPerson || customerData.contact_name,
+      email: customerData.email || '',
+      phone: customerData.phone || '',
+      tax_id: customerData.tax_id || customerData.taxId || '',
+      credit_limit: Number(customerData.credit_limit || customerData.creditLimit || 0),
+      balance: Number(customerData.balance || 0),
+      payment_terms: customerData.payment_terms || customerData.paymentTerms || 'NET_30',
+      account_status: customerData.account_status || customerData.accountStatus || 'ACTIVE',
+      notes: customerData.notes || '',
+      created_at: customerData.created_at || new Date().toISOString(),
+      updated_at: customerData.updated_at || new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('b2b_customers')
+        .insert(record)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    localStore.set(`b2b_customer:${record.id}`, record);
+    await saveStoreToDisk();
+    return record;
+  },
+
+  async updateB2BCustomer(id, updates) {
+    const updatedAt = new Date().toISOString();
+    const safeUpdates = { ...updates, updated_at: updatedAt };
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('b2b_customers')
+        .update(safeUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    const current = localStore.get(`b2b_customer:${id}`);
+    if (!current) return null;
+    const updated = { ...current, ...safeUpdates };
+    localStore.set(`b2b_customer:${id}`, updated);
+    await saveStoreToDisk();
+    return updated;
+  },
+
+  async getB2BCustomer(id) {
+    if (!id) return null;
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('b2b_customers')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || null;
+    }
+
+    return localStore.get(`b2b_customer:${id}`) || null;
+  },
+
+  async getB2BCustomerByUserId(userId) {
+    if (!userId) return null;
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('b2b_customers')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || null;
+    }
+
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('b2b_customer:') && val && val.user_id === userId) {
+        return val;
+      }
+    }
+    return null;
+  },
+
+  async getB2BCustomers(options = {}) {
+    const { search, status, page = 1, limit = 50 } = options;
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+
+    if (isSupabaseConfigured) {
+      let query = supabase.from('b2b_customers').select('*', { count: 'exact' });
+      if (status && status !== 'ALL') {
+        query = query.eq('account_status', status);
+      }
+      if (search) {
+        query = query.or(`company_name.ilike.%${search}%,contact_person.ilike.%${search}%,phone.ilike.%${search}%,tax_id.ilike.%${search}%`);
+      }
+      const from = (p - 1) * l;
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, from + l - 1);
+      if (error) throw error;
+      return {
+        data: data || [],
+        pagination: {
+          page: p,
+          limit: l,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / l),
+        },
+      };
+    }
+
+    const list = [];
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('b2b_customer:') && val) {
+        list.push(val);
+      }
+    }
+
+    let filtered = list;
+    if (status && status !== 'ALL') {
+      filtered = filtered.filter(c => c.account_status === status);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(c =>
+        (c.company_name && c.company_name.toLowerCase().includes(q)) ||
+        (c.contact_person && c.contact_person.toLowerCase().includes(q)) ||
+        (c.phone && c.phone.includes(q)) ||
+        (c.tax_id && c.tax_id.toLowerCase().includes(q))
+      );
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const total = filtered.length;
+    const from = (p - 1) * l;
+    const paginated = filtered.slice(from, from + l);
+
+    return {
+      data: paginated,
+      pagination: {
+        page: p,
+        limit: l,
+        total,
+        totalPages: Math.ceil(total / l),
+      },
+    };
+  },
+
+  async createCustomerBalanceTransaction(txData) {
+    const record = {
+      id: txData.id || `cbt-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      customer_id: txData.customer_id || txData.customerId,
+      type: txData.type,
+      amount: Math.round(Number(txData.amount) * 100) / 100,
+      balance_before: Math.round(Number(txData.balance_before) * 100) / 100,
+      balance_after: Math.round(Number(txData.balance_after) * 100) / 100,
+      reference_type: txData.reference_type || 'MANUAL',
+      reference_id: txData.reference_id || null,
+      payment_method: txData.payment_method || null,
+      external_reference: txData.external_reference || null,
+      note: txData.note || txData.reason || '',
+      actor_id: txData.actor_id || null,
+      actor_name: txData.actor_name || null,
+      created_at: txData.created_at || new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('customer_balance_transactions')
+        .insert(record)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    localStore.set(`cbt:${record.id}`, record);
+    await saveStoreToDisk();
+    return record;
+  },
+
+  async getCustomerBalanceTransactions(customerId, options = {}) {
+    const { type, page = 1, limit = 50 } = options;
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+
+    if (isSupabaseConfigured) {
+      let query = supabase
+        .from('customer_balance_transactions')
+        .select('*', { count: 'exact' })
+        .eq('customer_id', customerId);
+      if (type && type !== 'ALL') {
+        query = query.eq('type', type);
+      }
+      const from = (p - 1) * l;
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, from + l - 1);
+      if (error) throw error;
+      return {
+        data: data || [],
+        pagination: {
+          page: p,
+          limit: l,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / l),
+        },
+      };
+    }
+
+    const list = [];
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('cbt:') && val && val.customer_id === customerId) {
+        list.push(val);
+      }
+    }
+
+    let filtered = list;
+    if (type && type !== 'ALL') {
+      filtered = filtered.filter(t => t.type === type);
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const total = filtered.length;
+    const from = (p - 1) * l;
+    const paginated = filtered.slice(from, from + l);
+
+    return {
+      data: paginated,
+      pagination: {
+        page: p,
+        limit: l,
+        total,
+        totalPages: Math.ceil(total / l),
+      },
+    };
+  },
 };
