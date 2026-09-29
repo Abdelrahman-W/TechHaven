@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
+  Bell,
   LayoutDashboard,
   History,
   Package,
@@ -22,6 +23,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'لوحة التحكم' },
+  { to: '/admin/alerts', icon: Bell, label: 'التنبيهات والأتمتة' },
   { to: '/admin/products', icon: Package, label: 'إدارة المنتجات' },
   { to: '/admin/inventory', icon: History, label: 'حركة المخزون' },
   { to: '/admin/reorder', icon: Sliders, label: 'ذكاء إعادة الطلب' },

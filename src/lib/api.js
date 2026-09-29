@@ -255,6 +255,44 @@ export const api = {
     return fetchAPI(`/b2b/me/transactions${qs}`);
   },
 
+  // ── Automation & Operational Alerts (Batch 08) ──────────────
+  async getAlerts(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '' && val !== 'ALL') {
+        query.append(key, val);
+      }
+    });
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return fetchAPI(`/alerts${qs}`);
+  },
+
+  async getAlertsSummary() {
+    return fetchAPI('/alerts/summary');
+  },
+
+  async getAlert(id) {
+    return fetchAPI(`/alerts/${id}`);
+  },
+
+  async acknowledgeAlert(id) {
+    return fetchAPI(`/alerts/${id}/acknowledge`, {
+      method: 'PUT',
+    });
+  },
+
+  async resolveAlert(id) {
+    return fetchAPI(`/alerts/${id}/resolve`, {
+      method: 'PUT',
+    });
+  },
+
+  async triggerAutomationEvaluation() {
+    return fetchAPI('/automation/evaluate', {
+      method: 'POST',
+    });
+  },
+
   // ── Admin ──
   async getAdminStats() {
     return fetchAPI('/admin/stats');

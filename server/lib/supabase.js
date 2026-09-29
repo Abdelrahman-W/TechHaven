@@ -1175,12 +1175,17 @@ export const db = {
   },
 
   async createProduct(product) {
+    const record = {
+      ...product,
+      id: product.id || `prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      created_at: product.created_at || new Date().toISOString(),
+    };
     if (!supabaseUrl) {
-      localStore.set(`product:${product.id}`, product);
+      localStore.set(`product:${record.id}`, record);
       saveStoreToDisk();
-      return product;
+      return record;
     }
-    const { data, error } = await supabase.from('products').insert(product).select().single();
+    const { data, error } = await supabase.from('products').insert(record).select().single();
     if (error) throw error;
     return data;
   },
@@ -2440,14 +2445,21 @@ export const db = {
       };
     }
 
-    localStore.set(`purchase_order:${poData.id}`, poData);
-    if (poData.items) {
-      for (const it of poData.items) {
-        localStore.set(`po_item:${it.id}`, { ...it, purchase_order_id: poData.id });
+    const record = {
+      ...poData,
+      id: poData.id || `po-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      created_at: poData.created_at || new Date().toISOString(),
+      updated_at: poData.updated_at || new Date().toISOString(),
+    };
+    localStore.set(`purchase_order:${record.id}`, record);
+    if (record.items) {
+      for (const it of record.items) {
+        const itemId = it.id || `poi-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        localStore.set(`po_item:${itemId}`, { ...it, id: itemId, purchase_order_id: record.id });
       }
     }
     await saveStoreToDisk();
-    return poData;
+    return record;
   },
 
   async updatePurchaseOrder(id, updates) {
@@ -3225,5 +3237,253 @@ export const db = {
         totalPages: Math.ceil(total / l),
       },
     };
+  },
+
+  // ── Automation & Operational Alerts (Batch 08) ──────────────
+  async createOperationalAlert(alertData) {
+    const record = {
+      id: alertData.id || `alt-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      type: alertData.type,
+      severity: alertData.severity || 'INFO',
+      status: alertData.status || 'OPEN',
+      title: alertData.title,
+      message: alertData.message,
+      entity_type: alertData.entity_type,
+      entity_id: alertData.entity_id || null,
+      metadata: alertData.metadata || {},
+      deduplication_key: alertData.deduplication_key,
+      first_detected_at: alertData.first_detected_at || new Date().toISOString(),
+      last_detected_at: alertData.last_detected_at || new Date().toISOString(),
+      acknowledged_at: alertData.acknowledged_at || null,
+      acknowledged_by: alertData.acknowledged_by || null,
+      resolved_at: alertData.resolved_at || null,
+      resolved_by: alertData.resolved_by || null,
+      created_at: alertData.created_at || new Date().toISOString(),
+      updated_at: alertData.updated_at || new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('operational_alerts')
+        .insert(record)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    localStore.set(`alert:${record.id}`, record);
+    localStore.set(`alert_dedup:${record.deduplication_key}`, record.id);
+    saveStoreToDisk();
+    return record;
+  },
+
+  async updateOperationalAlert(id, updates) {
+    const payload = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('operational_alerts')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    const existing = localStore.get(`alert:${id}`);
+    if (!existing) return null;
+    const updated = { ...existing, ...payload };
+    localStore.set(`alert:${id}`, updated);
+    if (updated.deduplication_key) {
+      localStore.set(`alert_dedup:${updated.deduplication_key}`, updated.id);
+    }
+    saveStoreToDisk();
+    return updated;
+  },
+
+  async getOperationalAlert(id) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('operational_alerts')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    }
+    return localStore.get(`alert:${id}`) || null;
+  },
+
+  async getOperationalAlertByDedupKey(deduplicationKey) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('operational_alerts')
+        .select('*')
+        .eq('deduplication_key', deduplicationKey)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    }
+
+    const alertId = localStore.get(`alert_dedup:${deduplicationKey}`);
+    if (alertId) {
+      const found = localStore.get(`alert:${alertId}`);
+      if (found) return found;
+    }
+
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('alert:') && val && val.deduplication_key === deduplicationKey) {
+        return val;
+      }
+    }
+    return null;
+  },
+
+  async getOperationalAlerts(options = {}) {
+    const {
+      status,
+      severity,
+      type,
+      entity_type,
+      search,
+      page = 1,
+      limit = 50,
+    } = options;
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+
+    if (isSupabaseConfigured) {
+      let query = supabase.from('operational_alerts').select('*', { count: 'exact' });
+      if (status && status !== 'ALL') {
+        query = query.eq('status', status);
+      }
+      if (severity && severity !== 'ALL') {
+        query = query.eq('severity', severity);
+      }
+      if (type && type !== 'ALL') {
+        query = query.eq('type', type);
+      }
+      if (entity_type && entity_type !== 'ALL') {
+        query = query.eq('entity_type', entity_type);
+      }
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,message.ilike.%${search}%,entity_id.ilike.%${search}%`);
+      }
+
+      const from = (p - 1) * l;
+      const { data, error, count } = await query
+        .order('last_detected_at', { ascending: false })
+        .range(from, from + l - 1);
+      if (error) throw error;
+      return {
+        data: data || [],
+        pagination: {
+          page: p,
+          limit: l,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / l),
+        },
+      };
+    }
+
+    const list = [];
+    for (const [key, val] of localStore.entries()) {
+      if (key.startsWith('alert:') && val) {
+        list.push(val);
+      }
+    }
+
+    let filtered = list;
+    if (status && status !== 'ALL') {
+      filtered = filtered.filter(a => a.status === status);
+    }
+    if (severity && severity !== 'ALL') {
+      filtered = filtered.filter(a => a.severity === severity);
+    }
+    if (type && type !== 'ALL') {
+      filtered = filtered.filter(a => a.type === type);
+    }
+    if (entity_type && entity_type !== 'ALL') {
+      filtered = filtered.filter(a => a.entity_type === entity_type);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(a =>
+        (a.title && a.title.toLowerCase().includes(q)) ||
+        (a.message && a.message.toLowerCase().includes(q)) ||
+        (a.entity_id && a.entity_id.toLowerCase().includes(q))
+      );
+    }
+
+    filtered.sort((a, b) => new Date(b.last_detected_at) - new Date(a.last_detected_at));
+    const total = filtered.length;
+    const from = (p - 1) * l;
+    const paginated = filtered.slice(from, from + l);
+
+    return {
+      data: paginated,
+      pagination: {
+        page: p,
+        limit: l,
+        total,
+        totalPages: Math.ceil(total / l),
+      },
+    };
+  },
+
+  async createAutomationRun(runData) {
+    const record = {
+      id: runData.id || `run-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      started_at: runData.started_at || new Date().toISOString(),
+      finished_at: runData.finished_at || null,
+      status: runData.status || 'RUNNING',
+      alerts_created: Number(runData.alerts_created || 0),
+      alerts_updated: Number(runData.alerts_updated || 0),
+      alerts_resolved: Number(runData.alerts_resolved || 0),
+      error_count: Number(runData.error_count || 0),
+      error_details: runData.error_details || [],
+      trigger_source: runData.trigger_source || 'MANUAL',
+      actor_id: runData.actor_id || null,
+      created_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('automation_runs')
+        .insert(record)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    localStore.set(`run:${record.id}`, record);
+    saveStoreToDisk();
+    return record;
+  },
+
+  async updateAutomationRun(id, updates) {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('automation_runs')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    const existing = localStore.get(`run:${id}`);
+    if (!existing) return null;
+    const updated = { ...existing, ...updates };
+    localStore.set(`run:${id}`, updated);
+    saveStoreToDisk();
+    return updated;
   },
 };

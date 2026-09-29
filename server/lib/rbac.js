@@ -74,6 +74,13 @@ export const PERMISSIONS = {
   SETTINGS_VIEW: 'settings.view',
   SETTINGS_MANAGE: 'settings.manage',
 
+  // Automation & Operational Alerts (Batch 08)
+  ALERTS_VIEW: 'alerts.view',
+  ALERTS_MANAGE: 'alerts.manage',
+  AUTOMATION_EVALUATE: 'automation.evaluate',
+  AUTOMATION_MANAGE: 'automation.manage',
+  ADMIN_ALERTS_VIEW: 'admin.alerts.view',
+
   // Admin Dashboard views
   ADMIN_DASHBOARD_VIEW: 'admin.dashboard.view',
   ADMIN_USERS_VIEW: 'admin.users.view',
@@ -120,9 +127,10 @@ export const ROLE_DEFINITIONS = [
       'b2b.balance.view', 'b2b.balance.manage', 'b2b.payments.record', 'b2b.adjustments.manage',
       'reviews.view', 'reviews.moderate',
       'reports.sales', 'reports.profit', 'reports.inventory', 'products.cost.view', 'products.cost.manage',
+      'alerts.view', 'alerts.manage', 'automation.evaluate', 'automation.manage',
       'users.view',
       'settings.view',
-      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.suppliers.view', 'admin.purchasing.view', 'admin.reorder.view',
+      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.suppliers.view', 'admin.purchasing.view', 'admin.reorder.view', 'admin.alerts.view',
     ],
   },
   {
@@ -134,8 +142,9 @@ export const ROLE_DEFINITIONS = [
       'products.view',
       'inventory.view', 'inventory.adjust', 'inventory.movements', 'inventory.reorder.view', 'inventory.reorder.manage',
       'suppliers.view', 'purchasing.view', 'purchasing.create', 'purchasing.receive',
+      'alerts.view', 'alerts.manage', 'automation.evaluate',
       'reports.inventory',
-      'admin.dashboard.view', 'admin.purchasing.view', 'admin.reorder.view',
+      'admin.dashboard.view', 'admin.purchasing.view', 'admin.reorder.view', 'admin.alerts.view',
     ],
   },
   {
@@ -147,7 +156,8 @@ export const ROLE_DEFINITIONS = [
       'products.view',
       'orders.view', 'orders.edit', 'orders.export',
       'inventory.view',
-      'admin.dashboard.view', 'admin.orders.view',
+      'alerts.view',
+      'admin.dashboard.view', 'admin.orders.view', 'admin.alerts.view',
     ],
   },
   {

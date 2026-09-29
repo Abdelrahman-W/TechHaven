@@ -26,6 +26,8 @@ import analyticsRoutes from './routes/analytics.js';
 import reviewsRoutes from './routes/reviews.js';
 import wishlistRoutes from './routes/wishlist.js';
 import settingsRoutes from './routes/settings.js';
+import alertsRoutes from './routes/alerts.js';
+import automationRoutes from './routes/automation.js';
 import seoRoutes from './routes/seo.js';
 import { setupPrimaryCacheIPC } from './middleware/cache.js';
 
@@ -177,6 +179,8 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
   app.use('/api/reviews', reviewsRoutes);
   app.use('/api/wishlist', wishlistRoutes);
   app.use('/api/settings', settingsRoutes);
+  app.use('/api/alerts', alertsRoutes);
+  app.use('/api/automation', automationRoutes);
   
   // ── SEO & Public Crawlers (robots.txt, sitemap.xml) ────────
   app.use('/', seoRoutes);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  Bell,
   DollarSign,
   ShoppingBag,
   Users,
@@ -32,15 +33,17 @@ export default function Dashboard() {
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [alertsSummary, setAlertsSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsRes, ordersRes, prodsRes] = await Promise.all([
+      const [statsRes, ordersRes, prodsRes, alertsRes] = await Promise.all([
         api.getAdminStats().catch(() => ({})),
         api.getAdminOrders().catch(() => ({ data: [] })),
         api.getProducts({ limit: 100 }).catch(() => ({ data: [] })),
+        api.getAlertsSummary().catch(() => ({ data: null })),
       ]);
 
       const d = statsRes?.data || statsRes || {};
@@ -59,6 +62,9 @@ export default function Dashboard() {
         users: Number(d.users || d.totalUsers || 0),
         products: Number(d.products || d.totalProducts || (Array.isArray(prodList) ? prodList.length : 0)),
       });
+      if (alertsRes?.data) {
+        setAlertsSummary(alertsRes.data);
+      }
 
       setRecentOrders(Array.isArray(ordList) ? ordList.slice(0, 6) : []);
     } catch {
@@ -214,6 +220,39 @@ export default function Dashboard() {
           </div>
           <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-orange)', background: 'rgba(255, 94, 20, 0.15)', padding: '4px 10px', borderRadius: 6 }}>
             عرض القسم ←
+          </span>
+        </Link>
+
+        <Link
+          to="/admin/alerts"
+          style={{
+            background: alertsSummary?.critical_count > 0
+              ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.04) 100%)'
+              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 100%)',
+            border: alertsSummary?.critical_count > 0
+              ? '1px solid rgba(239, 68, 68, 0.3)'
+              : '1px solid rgba(16, 185, 129, 0.25)',
+            borderRadius: 12,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            textDecoration: 'none',
+            color: '#FFF',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: alertsSummary?.critical_count > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: alertsSummary?.critical_count > 0 ? '#EF4444' : '#10B981' }}>
+              <Bell size={20} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '0.92rem' }}>التنبيهات والأتمتة التشغيلية</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{alertsSummary?.critical_count > 0 ? `${alertsSummary.critical_count} تنبيه حرج يتطلب التدخل` : `${alertsSummary?.total_active_alerts || 0} تنبيه تشغيلي مفتوح`}</div>
+            </div>
+          </div>
+          <span style={{ fontSize: '1.2rem', fontWeight: 900, color: alertsSummary?.critical_count > 0 ? '#EF4444' : '#10B981', fontFamily: 'monospace' }}>
+            {alertsSummary?.total_active_alerts || 0}
           </span>
         </Link>
       </div>
