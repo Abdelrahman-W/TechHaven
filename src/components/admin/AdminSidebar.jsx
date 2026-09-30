@@ -34,7 +34,7 @@ const navItems = [
   { to: '/admin/categories', icon: Tags, label: 'الفئات والأقسام' },
   { to: '/admin/b2b', icon: Building2, label: 'طلبات الشركات B2B' },
   { to: '/admin/reviews', icon: Star, label: 'إدارة التقييمات' },
-  { to: '/admin/analytics', icon: TrendingUp, label: 'التحليلات والمبيعات' },
+  { to: '/admin/reports', icon: TrendingUp, label: 'التقارير والتحليلات' },
   { to: '/admin/settings', icon: Settings, label: 'إعدادات النظام' },
 ];
 

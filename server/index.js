@@ -23,6 +23,7 @@ import pcBuilderRoutes from './routes/pc-builder.js';
 import adminRoutes from './routes/admin.js';
 import paymentRoutes from './routes/payments.js';
 import analyticsRoutes from './routes/analytics.js';
+import reportsRoutes from './routes/reports.js';
 import reviewsRoutes from './routes/reviews.js';
 import wishlistRoutes from './routes/wishlist.js';
 import settingsRoutes from './routes/settings.js';
@@ -176,6 +177,7 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
   app.use('/api/admin', adminRoutes);
   app.use('/api/payments', paymentRoutes);
   app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/reports', reportsRoutes);
   app.use('/api/reviews', reviewsRoutes);
   app.use('/api/wishlist', wishlistRoutes);
   app.use('/api/settings', settingsRoutes);

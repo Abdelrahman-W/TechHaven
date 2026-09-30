@@ -46,9 +46,14 @@ export const PERMISSIONS = {
   SUPPLIERS_DELETE: 'suppliers.delete',
 
   // Reports & Business Intelligence
+  REPORTS_VIEW: 'reports.view',
   REPORTS_SALES: 'reports.sales',
   REPORTS_PROFIT: 'reports.profit',
   REPORTS_INVENTORY: 'reports.inventory',
+  REPORTS_PURCHASING: 'reports.purchasing',
+  REPORTS_B2B: 'reports.b2b',
+  REPORTS_EXPORT: 'reports.export',
+  ADMIN_REPORTS_VIEW: 'admin.reports.view',
 
   // B2B Corporate
   B2B_VIEW: 'b2b.view',
@@ -126,11 +131,11 @@ export const ROLE_DEFINITIONS = [
       'b2b.view', 'b2b.manage',
       'b2b.balance.view', 'b2b.balance.manage', 'b2b.payments.record', 'b2b.adjustments.manage',
       'reviews.view', 'reviews.moderate',
-      'reports.sales', 'reports.profit', 'reports.inventory', 'products.cost.view', 'products.cost.manage',
+      'reports.view', 'reports.sales', 'reports.profit', 'reports.inventory', 'reports.purchasing', 'reports.b2b', 'reports.export', 'products.cost.view', 'products.cost.manage',
       'alerts.view', 'alerts.manage', 'automation.evaluate', 'automation.manage',
       'users.view',
       'settings.view',
-      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.suppliers.view', 'admin.purchasing.view', 'admin.reorder.view', 'admin.alerts.view',
+      'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.reports.view', 'admin.suppliers.view', 'admin.purchasing.view', 'admin.reorder.view', 'admin.alerts.view',
     ],
   },
   {
@@ -143,8 +148,8 @@ export const ROLE_DEFINITIONS = [
       'inventory.view', 'inventory.adjust', 'inventory.movements', 'inventory.reorder.view', 'inventory.reorder.manage',
       'suppliers.view', 'purchasing.view', 'purchasing.create', 'purchasing.receive',
       'alerts.view', 'alerts.manage', 'automation.evaluate',
-      'reports.inventory',
-      'admin.dashboard.view', 'admin.purchasing.view', 'admin.reorder.view', 'admin.alerts.view',
+      'reports.view', 'reports.inventory', 'reports.purchasing', 'reports.export',
+      'admin.dashboard.view', 'admin.purchasing.view', 'admin.reorder.view', 'admin.reports.view', 'admin.alerts.view',
     ],
   },
   {
@@ -157,7 +162,8 @@ export const ROLE_DEFINITIONS = [
       'orders.view', 'orders.edit', 'orders.export',
       'inventory.view',
       'alerts.view',
-      'admin.dashboard.view', 'admin.orders.view', 'admin.alerts.view',
+      'reports.view', 'reports.sales',
+      'admin.dashboard.view', 'admin.orders.view', 'admin.reports.view', 'admin.alerts.view',
     ],
   },
   {
