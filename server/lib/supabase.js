@@ -1399,12 +1399,20 @@ export const db = {
 
   // ── Orders ──
   async getOrders(userId = null) {
+    const normalizeOrder = (order) => ({
+      ...order,
+      items: (order.items || order.order_items || []).map((item) => ({
+        ...item,
+        ...(item.unit_cost == null ? {} : { unit_cost: Number(item.unit_cost) }),
+        ...(item.total_cost == null ? {} : { total_cost: Number(item.total_cost) }),
+      })),
+    });
     if (!supabaseUrl) {
       const orders = [];
       for (const [key, val] of localStore.entries()) {
         if (key.startsWith('order:')) {
           if (!userId || val.user_id === userId) {
-            orders.push(val);
+            orders.push(normalizeOrder(val));
           }
         }
       }
@@ -1414,7 +1422,7 @@ export const db = {
         if (userId) query = query.eq('user_id', userId);
         const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
-        return data;
+        return (data || []).map(normalizeOrder);
       },
 
       /**

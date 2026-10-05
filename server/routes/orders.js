@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
-import { requireAuth, requirePermission, getOptionalUser } from '../middleware/auth.js';
+import { requireAuth, requirePermission, getOptionalUser, getOptionalUserAsync } from '../middleware/auth.js';
 import { invalidateCache } from '../middleware/cache.js';
 
 const router = Router();
@@ -9,14 +9,22 @@ const router = Router();
 // Returns only the authenticated user's orders, or all orders if admin. Unauthenticated callers get []
 router.get('/', async (req, res, next) => {
   try {
-    const user = getOptionalUser(req);
-    if (!user || !user.userId) {
+    const user = await getOptionalUserAsync(req);
+    if (!user || !(user.id || user.userId)) {
       return res.json({ data: [] });
     }
 
-    const isAdmin = user.role === 'admin';
-    const orders = await db.getOrders(isAdmin ? null : user.userId);
-    res.json({ data: orders });
+    const isAdmin = ['admin', 'owner'].includes(String(user.role).toLowerCase());
+    const orders = await db.getOrders(isAdmin ? null : (user.id || user.userId));
+    const normalizedOrders = orders.map((order) => ({
+      ...order,
+      items: (order.items || order.order_items || []).map((item) => ({
+        ...item,
+        ...(item.unit_cost == null ? {} : { unit_cost: Number(item.unit_cost) }),
+        ...(item.total_cost == null ? {} : { total_cost: Number(item.total_cost) }),
+      })),
+    }));
+    res.json({ data: normalizedOrders });
   } catch (err) {
     next(err);
   }
@@ -31,8 +39,8 @@ router.get('/:idOrRef', async (req, res, next) => {
       return res.status(404).json({ error: 'الطلب غير موجود', code: 'NOT_FOUND' });
     }
 
-    const user = getOptionalUser(req);
-    const isAdmin = Boolean(user && user.role === 'admin');
+    const user = await getOptionalUserAsync(req);
+    const isAdmin = Boolean(user && ['admin', 'owner'].includes(String(user.role).toLowerCase()));
 
     // 1. Admin has full access to any order
     if (isAdmin) {
@@ -41,7 +49,7 @@ router.get('/:idOrRef', async (req, res, next) => {
 
     // 2. Account-bound order: strictly only the account owner
     if (order.user_id) {
-      if (!user || user.userId !== order.user_id) {
+      if (!user || (user.id || user.userId) !== order.user_id) {
         return res.status(403).json({ error: 'غير مصرح لك بالاطلاع على هذا الطلب', code: 'FORBIDDEN' });
       }
       return res.json({ data: order });
@@ -67,9 +75,9 @@ router.get('/:idOrRef', async (req, res, next) => {
     );
 
     const isPhoneMatch = Boolean(
-      cleanReqPhone.length >= 8 &&
-      cleanOrderPhone.length >= 8 &&
-      (cleanReqPhone === cleanOrderPhone || cleanOrderPhone.endsWith(cleanReqPhone) || cleanReqPhone.endsWith(cleanOrderPhone))
+      cleanReqPhone.length >= 10 &&
+      cleanOrderPhone.length >= 10 &&
+      cleanReqPhone === cleanOrderPhone
     );
 
     if (!isSessionMatch && !isPhoneMatch) {
@@ -222,7 +230,7 @@ router.post('/', async (req, res, next) => {
     const orderPayload = {
       id: orderId,
       reference,
-      user_id: user?.userId || null,
+      user_id: user?.id || user?.userId || null,
       session_id: validSessionId,
       customer_name: customerName,
       customer_phone: customer.phone,

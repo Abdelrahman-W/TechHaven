@@ -77,10 +77,11 @@ export class SupabaseExpressStoreAdapter {
     );
 
     if (result.storeUnavailable) {
-      console.warn(`[P1-03] Rate limit store unavailable for scope [${this.scope}], key [${key}]; failing open.`);
+      const failClosed = this.scope === 'auth' || this.scope === 'admin';
+      console.error(`[P1-03] Rate limit store unavailable for scope [${this.scope}], key [${key}]; failing ${failClosed ? 'closed' : 'open'}.`);
       return {
-        totalHits: 0,
-        resetTime: undefined,
+        totalHits: failClosed ? this.limit + 1 : 0,
+        resetTime: failClosed ? new Date(Date.now() + this.windowMs) : undefined,
       };
     }
 

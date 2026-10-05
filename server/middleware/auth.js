@@ -155,3 +155,15 @@ export const getOptionalUser = (req) => {
     return null;
   }
 };
+
+export const getOptionalUserAsync = async (req) => {
+  const token = extractToken(req);
+  if (!token) return null;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!decoded?.userId) return null;
+    return await db.findUserById(decoded.userId);
+  } catch {
+    return null;
+  }
+};

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { db } from '../lib/supabase.js';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../middleware/auth.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
@@ -94,6 +96,25 @@ router.post('/paymob/initiate', async (req, res) => {
     const order = await db.getOrder(order_id);
     if (!order) {
       return res.status(404).json({ success: false, error: 'الطلب غير موجود' });
+    }
+
+    let tokenUser = null;
+    const authHeader = req.headers.authorization || '';
+    if (authHeader.startsWith('Bearer ')) {
+      try {
+        const decoded = jwt.verify(authHeader.slice(7).trim(), JWT_SECRET);
+        tokenUser = decoded?.userId ? await db.findUserById(decoded.userId) : null;
+      } catch { tokenUser = null; }
+    }
+    const normalizePhone = (value) => String(value || '').replace(/[^0-9]/g, '');
+    const isOwner = tokenUser && (tokenUser.id || tokenUser.userId) === order.user_id;
+    const sessionId = req.headers['x-session-id'];
+    const guestSessionMatch = !order.user_id && order.session_id && sessionId === order.session_id;
+    const requestPhone = normalizePhone(customer?.phone);
+    const orderPhone = normalizePhone(order.customer_phone);
+    const guestPhoneMatch = !order.user_id && requestPhone.length >= 10 && requestPhone === orderPhone;
+    if (!isOwner && !guestSessionMatch && !guestPhoneMatch) {
+      return res.status(403).json({ success: false, error: 'غير مصرح لك ببدء سداد هذا الطلب', code: 'FORBIDDEN' });
     }
 
     const authoritativeTotal = Number(order.total);
@@ -305,11 +326,16 @@ router.post('/paymob/webhook', async (req, res) => {
     if (orderId && isSuccess) {
       const order = await db.getOrder(orderId);
       if (order) {
+        const transactionId = String(data?.id || 'online');
         const timeline = order.timeline || [];
+        if (order.payment_status === 'paid' || timeline.some((entry) => entry.payment_transaction_id === transactionId)) {
+          return res.json({ accepted: true, duplicate: true, order_id: order.id });
+        }
         timeline.push({
           status: 'paid',
           label: `تم استلام الدفع الإلكتروني بنجاح عبر Paymob (معاملة: ${data?.id || 'online'})`,
-          time: new Date().toISOString()
+          time: new Date().toISOString(),
+          payment_transaction_id: transactionId,
         });
 
         await db.updateOrder(order.id, {
