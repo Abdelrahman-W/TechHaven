@@ -146,8 +146,7 @@ export default function ProductCard({ product }) {
   const discountPercent =
     oldPrice > price ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
 
-  const rating = product.rating || 4.9;
-  const reviewCount = product.review_count || (product.id ? (Number(product.id) * 7) % 35 + 15 : 24);
+  const rating = Number(product.rating) || 0;
 
   const currentImgSrc = images[activeImgIndex] || images[0];
 
@@ -286,7 +285,7 @@ export default function ProductCard({ product }) {
                 />
               ))}
             </div>
-            <span className="th-rating-reviews">({rating})</span>
+            <span className="th-rating-reviews">{rating > 0 ? `(${rating})` : (isRtl ? 'لا توجد تقييمات' : 'No reviews')}</span>
           </div>
 
           {/* Action Row: Orange ADD TO CART + Quick View Modal Trigger */}

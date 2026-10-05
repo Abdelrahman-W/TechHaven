@@ -307,7 +307,10 @@ export default function QuickViewModal({ product, isOpen, onClose }) {
                 ))}
               </div>
               <span style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>
-                ({product.rating || 4.9}) • {product.review_count || 34} {isRtl ? 'تقييم' : 'reviews'}
+                {Number(product.rating) > 0 ? `(${product.rating}) • ` : ''}
+                {Number(product.review_count) > 0
+                  ? `${product.review_count} ${isRtl ? 'تقييم' : 'reviews'}`
+                  : (isRtl ? 'لا توجد تقييمات بعد' : 'No reviews yet')}
               </span>
             </div>
 

@@ -54,6 +54,16 @@ export default function Shop() {
   const [inStockOnly, setInStockOnly] = useState(searchParams.get('inStock') === 'true');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'featured');
 
+  // Keep local filter controls synchronized with browser back/forward and
+  // links that update the query string outside this component.
+  useEffect(() => {
+    setSelectedBrand(searchParams.get('brand') || '');
+    setMinPrice(searchParams.get('minPrice') || '');
+    setMaxPrice(searchParams.get('maxPrice') || '');
+    setInStockOnly(searchParams.get('inStock') === 'true');
+    setSortBy(searchParams.get('sort') || 'featured');
+  }, [searchParams]);
+
   // Fetch Categories for Official Store
   useEffect(() => {
     api.getCategories()

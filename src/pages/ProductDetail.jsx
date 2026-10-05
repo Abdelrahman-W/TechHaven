@@ -444,11 +444,15 @@ export default function ProductDetail() {
         name: 'TechHaven',
       },
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating || 4.9,
-      reviewCount: product.review_count || 128,
-    },
+    ...(Number(product.rating) > 0 && Number(product.review_count) > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: Number(product.rating),
+            reviewCount: Number(product.review_count),
+          },
+        }
+      : {}),
   };
 
   return (
@@ -660,10 +664,10 @@ export default function ProductDetail() {
                 ))}
               </div>
               <span style={{ color: '#FFFFFF', fontWeight: 800, fontSize: 'var(--text-sm)' }}>
-                {product.rating || '4.9'}
+                {Number(product.rating) > 0 ? product.rating : '—'}
               </span>
               <span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>
-                ({product.review_count || 128} {t('pd_verified_reviews')})
+                ({Number(product.review_count) > 0 ? product.review_count : 0} {t('pd_verified_reviews')})
               </span>
               <span style={{ color: 'var(--border-strong)' }}>|</span>
               <span style={{ color: 'var(--success)', fontSize: 'var(--text-xs)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -977,7 +981,7 @@ export default function ProductDetail() {
               onClick={() => setActiveTab('reviews')}
               style={{ borderRadius: 'var(--radius-sm)' }}
             >
-              {t('pd_tab_reviews')} ({product.review_count || 128})
+              {t('pd_tab_reviews')} ({Number(product.review_count) || 0})
             </button>
           </div>
 
@@ -1055,14 +1059,14 @@ export default function ProductDetail() {
               <div style={{ display: 'flex', gap: 32, alignItems: 'center', marginBottom: 28, flexWrap: 'wrap' }}>
                 <div style={{ textAlign: 'center', padding: 24, background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', minWidth: 160 }}>
                   <div style={{ fontSize: '3rem', fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>
-                    {product.rating || '4.9'}
+                    {Number(product.rating) > 0 ? product.rating : '—'}
                   </div>
                   <div style={{ display: 'flex', gap: 3, justifyContent: 'center', margin: '8px 0' }}>
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={16} fill="var(--brand-orange)" stroke="var(--brand-orange)" />
                     ))}
                   </div>
-                  <small style={{ color: 'var(--text-muted)' }}>{t('pd_based_on')} {product.review_count || 128} {t('pd_reviews_word')}</small>
+                  <small style={{ color: 'var(--text-muted)' }}>{t('pd_based_on')} {Number(product.review_count) || 0} {t('pd_reviews_word')}</small>
                 </div>
                 <div>
                   <h4 style={{ color: '#FFFFFF', fontSize: 'var(--text-md)', marginBottom: 6 }}>
