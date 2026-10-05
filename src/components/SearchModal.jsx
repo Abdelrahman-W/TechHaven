@@ -249,7 +249,7 @@ export default function SearchModal({ isOpen, onClose }) {
               ) : !loading ? (
                 <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary, #9090A8)' }}>
                   <Package size={36} style={{ color: 'var(--text-muted, #5A5A70)', margin: '0 auto 8px' }} />
-                  <p style={{ margin: 0, fontWeight: 600 }}>{t('search_no_results') || 'لا توجد نتائج بحث عن:'} "{query}"</p>
+                  <p style={{ margin: 0, fontWeight: 600 }}>{t('search_no_results') || 'لا توجد نتائج بحث عن:'} &quot;{query}&quot;</p>
                   <small style={{ color: 'var(--text-muted, #5A5A70)', marginTop: '4px', display: 'block' }}>{t('search_no_results_sub') || 'جرّب البحث بكلمات أخرى أو تحقق من الحروف.'}</small>
                 </div>
               ) : null}

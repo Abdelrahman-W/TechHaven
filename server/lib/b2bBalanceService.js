@@ -104,6 +104,7 @@ export class B2BBalanceService {
    * Create B2B customer account
    */
   static async createCustomer(data, actorUser = null) {
+    void actorUser;
     const {
       company_name,
       companyName,
@@ -215,6 +216,7 @@ export class B2BBalanceService {
    * List B2B customers with search, status filter, and pagination (Admin only)
    */
   static async getCustomers(params = {}, requestingUser = null) {
+    void requestingUser;
     const res = await db.getB2BCustomers(params);
     return {
       data: (res.data || []).map((c) => this.enrichCustomer(c)),
@@ -226,6 +228,7 @@ export class B2BBalanceService {
    * Update B2B account status (ACTIVE, SUSPENDED, CLOSED)
    */
   static async updateAccountStatus(customerId, status, notes = '', actorUser = null) {
+    void actorUser;
     if (!Object.values(ACCOUNT_STATUSES).includes(status)) {
       const err = new Error('حالة الحساب غير صالحة');
       err.code = 'INVALID_ACCOUNT_STATUS';
@@ -262,6 +265,7 @@ export class B2BBalanceService {
    * Update B2B customer settings (credit_limit, payment_terms, notes)
    */
   static async updateCustomerSettings(customerId, settings = {}, actorUser = null) {
+    void actorUser;
     const { credit_limit, creditLimit, payment_terms, paymentTerms, notes, tax_id, taxId } = settings;
 
     return withAccountLock(customerId, async () => {
@@ -619,6 +623,7 @@ export class B2BBalanceService {
    * Aggregate operational summary for B2B accounts
    */
   static async getBalancesSummary(requestingUser = null) {
+    void requestingUser;
     const allCustomers = await db.getB2BCustomers({ limit: 1000 });
     const list = allCustomers.data || [];
 

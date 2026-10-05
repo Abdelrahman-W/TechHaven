@@ -115,7 +115,7 @@ export class SupplierService {
   /**
    * Delete supplier if no purchase history exists, otherwise reject and advise deactivation.
    */
-  static async deleteSupplier(id, actor = 'admin') {
+  static async deleteSupplier(id) {
     if (!id) {
       const err = new Error('معرف المورد مطلوب');
       err.code = 'MISSING_SUPPLIER_ID';

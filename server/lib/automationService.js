@@ -10,7 +10,7 @@
  */
 
 import { db } from './supabase.js';
-import { ReorderService, STOCK_STATUSES } from './reorderService.js';
+import { ReorderService } from './reorderService.js';
 import { invalidateCache } from '../middleware/cache.js';
 
 export const ALERT_TYPES = {

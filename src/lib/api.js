@@ -18,17 +18,20 @@ async function fetchAPI(endpoint, options = {}) {
     headers,
   });
 
-  const json = await response.json().catch(() => ({}));
+  const contentType = response.headers.get('content-type') || '';
+  const payload = contentType.includes('text/csv')
+    ? await response.text()
+    : await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const errorMsg = json.error || `خطأ في الاتصال بالسيرفر (${response.status})`;
+    const errorMsg = payload?.error || `خطأ في الاتصال بالسيرفر (${response.status})`;
     const error = new Error(errorMsg);
     error.status = response.status;
-    error.code = json.code;
+    error.code = payload?.code;
     throw error;
   }
 
-  return json;
+  return payload;
 }
 
 export const api = {
@@ -689,7 +692,131 @@ export const api = {
   },
 
   async getAnalyticsUserStats() {
-    return fetchAPI('/analytics/user-stats');
-  },
+      return fetchAPI('/analytics/user-stats');
+    },
+
+    // ── Reports (Batch 09) ──
+    async getExecutiveSummary(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/executive-summary${qs ? `?${qs}` : ''}`);
+    },
+
+    async getSalesSummary(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/sales${qs ? `?${qs}` : ''}`);
+    },
+
+    async getProfitabilitySummary(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/profitability${qs ? `?${qs}` : ''}`);
+    },
+
+    async getProductPerformance(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/products${qs ? `?${qs}` : ''}`);
+    },
+
+    async getCategoryPerformance(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/categories${qs ? `?${qs}` : ''}`);
+    },
+
+    async getInventoryReport(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/inventory${qs ? `?${qs}` : ''}`);
+    },
+
+    async getInventoryMovementsReport(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/inventory-movements${qs ? `?${qs}` : ''}`);
+    },
+
+    async getPurchasingReport(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/purchasing${qs ? `?${qs}` : ''}`);
+    },
+
+    async getB2BReport(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/b2b${qs ? `?${qs}` : ''}`);
+    },
+
+    async getOperationalAlertsReport(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/alerts${qs ? `?${qs}` : ''}`);
+    },
+
+    async exportReportCSV(type, params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, val);
+        }
+      });
+      const qs = query.toString();
+      return fetchAPI(`/reports/export/${type}${qs ? `?${qs}` : ''}`, {
+        headers: { Accept: 'text/csv' },
+      });
+    },
 
   };

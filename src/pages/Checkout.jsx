@@ -12,14 +12,15 @@ import {
   ArrowRight,
   ArrowLeft,
   Clock,
-  ShoppingBag
+  ShoppingBag,
+  Banknote
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
-import { formatEGP } from '../lib/utils';
+
 
 const CITIES = [
   { ar: 'القاهرة', en: 'Cairo' },

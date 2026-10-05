@@ -169,6 +169,19 @@ export class ReportingService {
     });
   }
 
+  static async fetchBoundedPages(fetchPage, filters = {}) {
+    const rows = [];
+    const limit = 100;
+    for (let page = 1; page <= Math.ceil(MAX_REPORT_ROWS / limit); page += 1) {
+      const result = await fetchPage({ ...filters, page, limit });
+      const batch = Array.isArray(result?.data) ? result.data : [];
+      rows.push(...batch);
+      if (batch.length < limit || rows.length >= MAX_REPORT_ROWS) break;
+    }
+    if (rows.length > MAX_REPORT_ROWS) rows.length = MAX_REPORT_ROWS;
+    return rows;
+  }
+
   static getOrderItems(order) {
     const items = order?.items || order?.order_items || [];
     return Array.isArray(items) ? items : [];
@@ -262,7 +275,7 @@ export class ReportingService {
     };
   }
 
-  static async getSalesSummary(params = {}, _user = null) {
+  static async getSalesSummary(params = {}) {
     return this.buildSalesSummary(await this.getOrderAnalytics(params));
   }
 
@@ -489,7 +502,8 @@ export class ReportingService {
     };
   }
 
-  static async getInventoryReport(_params = {}, user = null) {
+  static async getInventoryReport(params = {}, user = null) {
+    void params;
     const [products, reorder] = await Promise.all([db.getAllProducts(), ReorderService.getReorderSummary(user)]);
     const canViewCost = this.canUserViewCost(user);
     let unitsOnHand = 0;
@@ -513,17 +527,17 @@ export class ReportingService {
     };
   }
 
-  static async getInventoryMovementsReport(params = {}, _user = null) {
+  static async getInventoryMovementsReport(params = {}) {
     const range = this.normalizeDateRange(params);
     const movements = await this.fetchBoundedPages(
       (query) => db.getInventoryMovements(query),
       { startDate: range.startDate, endDate: range.endDate },
-      'inventory movements',
     );
+    const boundedMovements = this.filterByDate(movements, range.startDate, range.endDate);
     const byMovementType = {};
     let inflow = 0;
     let outflow = 0;
-    for (const movement of movements) {
+    for (const movement of boundedMovements) {
       const quantity = asFiniteNumber(movement.quantity_delta ?? movement.quantity_change, 0);
       const type = movement.type || movement.movement_type || 'UNKNOWN';
       if (!byMovementType[type]) byMovementType[type] = { count: 0, quantity: 0 };
@@ -537,7 +551,7 @@ export class ReportingService {
       start_date: range.startDate,
       end_date: range.endDate,
       date_interval: range.interval,
-      total_movements_count: movements.length,
+      total_movements_count: boundedMovements.length,
       total_inflow_quantity: inflow,
       total_outflow_quantity: outflow,
       net_quantity_change: inflow - outflow,
@@ -545,20 +559,20 @@ export class ReportingService {
     };
   }
 
-  static async getPurchasingReport(params = {}, _user = null) {
+  static async getPurchasingReport(params = {}) {
     const range = this.normalizeDateRange(params);
     const purchaseOrders = await this.fetchBoundedPages(
       (query) => db.getPurchaseOrders(query),
       { startDate: range.startDate, endDate: range.endDate, supplier_id: params.supplier_id || params.supplier },
-      'purchase orders',
     );
+    const boundedPurchaseOrders = this.filterByDate(purchaseOrders, range.startDate, range.endDate);
     const suppliers = new Map();
     const statusCounts = { DRAFT: 0, CONFIRMED: 0, CLOSED: 0, CANCELLED: 0 };
     let purchasingValue = 0;
     let ordered = 0;
     let received = 0;
 
-    for (const purchaseOrder of purchaseOrders) {
+    for (const purchaseOrder of boundedPurchaseOrders) {
       const supplierId = purchaseOrder.supplier_id || 'UNKNOWN';
       const supplierName = purchaseOrder.supplier?.name || purchaseOrder.supplier_name || 'مورد غير محدد';
       if (!suppliers.has(supplierId)) suppliers.set(supplierId, { supplier_id: supplierId, supplier_name: supplierName, po_count: 0, purchased_value: 0, ordered_quantity: 0, received_quantity: 0 });
@@ -589,7 +603,7 @@ export class ReportingService {
       start_date: range.startDate,
       end_date: range.endDate,
       date_interval: range.interval,
-      total_purchase_orders: purchaseOrders.length,
+      total_purchase_orders: boundedPurchaseOrders.length,
       draft_pos_count: statusCounts.DRAFT,
       confirmed_pos_count: statusCounts.CONFIRMED,
       closed_pos_count: statusCounts.CLOSED,
@@ -603,7 +617,7 @@ export class ReportingService {
     };
   }
 
-  static async getB2BReport(_params = {}, _user = null) {
+  static async getB2BReport() {
     const summary = await B2BBalanceService.getBalancesSummary();
     return {
       ...summary,
@@ -614,7 +628,7 @@ export class ReportingService {
     };
   }
 
-  static async getOperationalAlertsReport(_params = {}, _user = null) {
+  static async getOperationalAlertsReport() {
     const summary = await AutomationService.getSummary();
     return { ...summary, report_time: new Date().toISOString() };
   }

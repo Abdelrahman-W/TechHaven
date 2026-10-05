@@ -14,7 +14,7 @@ import { api } from '../lib/api';
 
 export default function Wishlist() {
   const { addToCart } = useCart();
-  const { lang, isRtl, t } = useLanguage();
+  const { isRtl, t } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -81,7 +81,7 @@ export default function Wishlist() {
       })
       .catch(() => {
         setItems(prev);
-        toast.error(isRtl ? 'تعذر الحذف من المفضلة' : 'Could not remove from wishlist');
+        window.alert(isRtl ? 'تعذر الحذف من المفضلة' : 'Could not remove from wishlist');
       });
   };
 

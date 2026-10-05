@@ -1631,7 +1631,7 @@ export default function Settings() {
                               إنشاء بوليصة الشحن تلقائياً (Auto Waybill Generation)
                             </div>
                             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: 2 }}>
-                              توليد رقم تتبع وطباعة بوليصة الشحن فور تغيير حالة الطلب إلى "مؤكد" أو "جاري التجهيز"
+                              توليد رقم تتبع وطباعة بوليصة الشحن فور تغيير حالة الطلب إلى &quot;مؤكد&quot; أو &quot;جاري التجهيز&quot;
                             </div>
                           </div>
                           <input

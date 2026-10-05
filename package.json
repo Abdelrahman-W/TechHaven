@@ -10,6 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server/index.js",
+    "test": "node scratch/run_all_acceptance_suites.mjs",
+    "test:reports": "node scratch/test_reports_executive_analytics.mjs",
     "test:security": "node scratch/test_security_audit.cjs",
     "backup": "node server/scripts/backup.js",
     "lint": "eslint ."
