@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { SettingsProvider } from './context/SettingsContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -160,14 +161,16 @@ function App() {
       <SettingsProvider>
         <ThemeProvider>
           <AuthProvider>
-            <CartProvider>
-              <LanguageProvider>
-                <Router>
-                  <ScrollToTop />
-                  <AppLayout />
-                </Router>
-              </LanguageProvider>
-            </CartProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <LanguageProvider>
+                  <Router>
+                    <ScrollToTop />
+                    <AppLayout />
+                  </Router>
+                </LanguageProvider>
+              </CartProvider>
+            </WishlistProvider>
           </AuthProvider>
         </ThemeProvider>
       </SettingsProvider>

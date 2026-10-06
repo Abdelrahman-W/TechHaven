@@ -18,11 +18,14 @@ router.get('/', async (req, res, next) => {
     const orders = await db.getOrders(isAdmin ? null : (user.id || user.userId));
     const normalizedOrders = orders.map((order) => ({
       ...order,
-      items: (order.items || order.order_items || []).map((item) => ({
-        ...item,
-        ...(item.unit_cost == null ? {} : { unit_cost: Number(item.unit_cost) }),
-        ...(item.total_cost == null ? {} : { total_cost: Number(item.total_cost) }),
-      })),
+      items: (order.items || order.order_items || []).map((item) => {
+        const { unit_cost, total_cost, ...rest } = item;
+        return {
+          ...rest,
+          unit_cost: unit_cost == null ? 0 : Number(unit_cost),
+          total_cost: total_cost == null ? 0 : Number(total_cost),
+        };
+      }),
     }));
     res.json({ data: normalizedOrders });
   } catch (err) {

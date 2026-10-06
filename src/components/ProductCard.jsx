@@ -1,17 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Check, Heart, Eye, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useWishlist } from '../context/WishlistContext';
 import { toast } from 'sonner';
-import { api } from '../lib/api';
 import QuickViewModal from './QuickViewModal';
 
 export default function ProductCard({ product }) {
   const { addItem, addToCart } = useCart();
   const { isRtl, t } = useLanguage();
+  const { isWishlisted: isProductWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
   const [isAdded, setIsAdded] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   // Hooks must run before the early return below so the hook order is
@@ -22,26 +22,9 @@ export default function ProductCard({ product }) {
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
 
-  // Load wishlist state for authenticated users on mount / when product changes.
-  // Guests keep the current behavior (no server state, heart is local-only).
-  useEffect(() => {
-    let active = true;
-    if (!localStorage.getItem('eh_token')) {
-      setIsWishlisted(false);
-      return () => { active = false; };
-    }
-    api.getWishlist()
-      .then((res) => {
-        if (!active) return;
-        const items = res?.data || res?.items || [];
-        const ids = new Set(items.map((i) => i.product_id || i.productId || i.id));
-        setIsWishlisted(ids.has(product?.id));
-      })
-      .catch(() => { if (active) setIsWishlisted(false); });
-    return () => { active = false; };
-  }, [product?.id]);
-
   if (!product) return null;
+
+  const isWishlisted = isProductWishlisted(product.id);
 
   const rawImages = (product.images && product.images.length > 0)
     ? product.images
@@ -121,20 +104,15 @@ export default function ProductCard({ product }) {
       toast.info(isRtl ? 'سجّل الدخول لإضافة المنتجات للمفضلة' : 'Please log in to add products to your wishlist');
       return;
     }
-    const wasWishlisted = isWishlisted;
-    const next = !wasWishlisted;
+    const next = !isWishlisted;
     setWishlistBusy(true);
-    // Optimistic update
-    setIsWishlisted(next);
     try {
       if (next) {
-        await api.addToWishlist(product.id);
+        await addToWishlist(product);
       } else {
-        await api.removeFromWishlist(product.id);
+        await removeFromWishlist(product.id);
       }
     } catch (err) {
-      // Rollback on failure
-      setIsWishlisted(wasWishlisted);
       toast.error(isRtl ? 'تعذر تحديث المفضلة، حاول مرة أخرى' : 'Could not update wishlist. Please try again.');
     } finally {
       setWishlistBusy(false);

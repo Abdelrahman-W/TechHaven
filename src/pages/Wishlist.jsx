@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Heart,
@@ -10,77 +10,18 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
-import { api } from '../lib/api';
+import { useWishlist } from '../context/WishlistContext';
 
 export default function Wishlist() {
   const { addToCart } = useCart();
   const { isRtl, t } = useLanguage();
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { items, loading, removeFromWishlist } = useWishlist();
   const [copied, setCopied] = useState(false);
   const [addedIds, setAddedIds] = useState({});
 
-  useEffect(() => {
-    setLoading(true);
-    const token = localStorage.getItem('eh_token');
-    if (!token) {
-      // Guest behavior stays exactly as before: localStorage fallback only.
-      let saved = null;
-      try {
-        saved = JSON.parse(localStorage.getItem('egy_wishlist') || 'null');
-      } catch {
-        saved = null;
-      }
-      if (saved && Array.isArray(saved) && saved.length > 0) {
-        setItems(saved);
-      } else {
-        setItems([]);
-      }
-      setLoading(false);
-      return;
-    }
-    // Authenticated: server is the source of truth. No localStorage preference.
-    api.getWishlist()
-      .then((res) => {
-        const items = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res)
-            ? res
-            : [];
-        setItems(items);
-      })
-      .catch((err) => {
-        console.warn('Failed to load server wishlist, falling back to empty:', err);
-        setItems([]);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
   const handleRemove = (id) => {
-    const token = localStorage.getItem('eh_token');
-    if (!token) {
-      // Guest behavior unchanged: local removal only.
-      const next = items.filter((item) => item.id !== id);
-      setItems(next);
-      try {
-        localStorage.setItem('egy_wishlist', JSON.stringify(next));
-      } catch { /* non-fatal */ }
-      return;
-    }
-    // Authenticated: remove via API (optimistic, rollback on failure).
-    const prev = items;
-    const next = items.filter((item) => (item.product_id || item.id) !== id);
-    setItems(next);
-    api.removeFromWishlist(id)
-      .then((res) => {
-        const serverItems = Array.isArray(res?.data) ? res.data : null;
-        if (serverItems) setItems(serverItems);
-        try {
-          localStorage.setItem('egy_wishlist', JSON.stringify(serverItems || next));
-        } catch { /* non-fatal */ }
-      })
+    removeFromWishlist(id)
       .catch(() => {
-        setItems(prev);
         window.alert(isRtl ? 'تعذر الحذف من المفضلة' : 'Could not remove from wishlist');
       });
   };
