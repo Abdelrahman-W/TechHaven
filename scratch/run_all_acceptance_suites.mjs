@@ -89,6 +89,7 @@ const suites = [
   { name: 'Reorder Intelligence Domain', path: 'scratch/test_reorder_intelligence.mjs' },
   { name: 'B2B Customer Balances (B07)', path: 'scratch/test_b2b_balances.mjs' },
   { name: 'Automation & Operational Alerts (B08)', path: 'scratch/test_automation_alerts.mjs' },
+  { name: 'Reporting & Executive Analytics (B09)', path: 'scratch/test_reports_executive_analytics.mjs' },
 
   // P2 Hardening Suites
   { name: 'P2-SEC-01 (CSP Headers)', path: 'scratch/test_csp_headers.mjs' },
