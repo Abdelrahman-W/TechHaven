@@ -14,9 +14,67 @@ import {
   Search,
   ExternalLink,
   Sparkles,
+  Gamepad2,
+  Laptop,
+  Monitor,
+  Zap,
+  HardDrive,
+  Cpu,
+  Volume2,
+  Keyboard,
+  Mouse,
+  Smartphone,
+  Sliders,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { formatEGP } from '../../lib/utils';
+
+const CATEGORY_ICON_MAP = {
+  '\uD83C\uDFAE': Gamepad2,
+  '\uD83D\uDCBB': Laptop,
+  '\uD83D\uDDA5\uFE0F': Monitor,
+  '\u26A1': Zap,
+  '\uD83D\uDCBE': HardDrive,
+  '\u2699\uFE0F': Cpu,
+  '\uD83D\uDD0A': Volume2,
+  '\uD83C\uDFA7': Volume2,
+  '\u2328\uFE0F': Keyboard,
+  '\uD83D\uDDB2\uFE0F': Mouse,
+  '\uD83D\uDCF1': Smartphone,
+  '\uD83D\uDD0C': Zap,
+  '\uD83C\uDF9B\uFE0F': Sliders,
+  '\uD83D\uDCE6': Package,
+  'gaming': Gamepad2,
+  'laptop': Laptop,
+  'desktop': Monitor,
+  'gpu': Monitor,
+  'cpu': Cpu,
+  'ram': Zap,
+  'storage': HardDrive,
+  'audio': Volume2,
+  'peripherals': Keyboard,
+  'mouse': Mouse,
+  'phone': Smartphone,
+  'package': Package,
+};
+
+const availableIcons = [
+  { id: 'gaming', label: 'ألعاب', Icon: Gamepad2 },
+  { id: 'laptop', label: 'لابتوب', Icon: Laptop },
+  { id: 'desktop', label: 'شاشات', Icon: Monitor },
+  { id: 'cpu', label: 'معالجات', Icon: Cpu },
+  { id: 'storage', label: 'تخزين', Icon: HardDrive },
+  { id: 'ram', label: 'طاقة ورام', Icon: Zap },
+  { id: 'audio', label: 'صوتيات', Icon: Volume2 },
+  { id: 'peripherals', label: 'لوحات مفاتيح', Icon: Keyboard },
+  { id: 'mouse', label: 'ماوسات', Icon: Mouse },
+  { id: 'package', label: 'عام', Icon: Package },
+];
+
+const renderCatIcon = (iconKey, size = 22) => {
+  const IconComponent = CATEGORY_ICON_MAP[iconKey] || Package;
+  return <IconComponent size={size} />;
+};
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -34,12 +92,10 @@ export default function Categories() {
     name: '',
     name_en: '',
     slug: '',
-    icon: '📦',
+    icon: 'package',
     description: '',
     is_active: true,
   });
-
-  const availableIcons = ['🎮', '💻', '🖥️', '⚡', '💾', '⚙️', '🔊', '⌨️', '🖲️', '📱', '🔌', '🎛️', '📦'];
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -73,7 +129,7 @@ export default function Categories() {
       name: '',
       name_en: '',
       slug: '',
-      icon: '🎮',
+      icon: 'gaming',
       description: '',
       is_active: true,
     });
@@ -86,7 +142,7 @@ export default function Categories() {
       name: cat.name || '',
       name_en: cat.name_en || '',
       slug: cat.slug || '',
-      icon: cat.icon || '📦',
+      icon: cat.icon || 'package',
       description: cat.description || '',
       is_active: cat.is_active !== false,
     });
@@ -483,11 +539,11 @@ export default function Categories() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.8rem',
+                      color: 'var(--brand-orange)',
                       flexShrink: 0,
                     }}
                   >
-                    {cat.icon || '📦'}
+                    {renderCatIcon(cat.icon, 24)}
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -741,27 +797,31 @@ export default function Categories() {
                   أيقونة القسم (اختر الرمز)
                 </label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                  {availableIcons.map((ic) => (
-                    <button
-                      key={ic}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, icon: ic })}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 8,
-                        background: formData.icon === ic ? 'rgba(255, 94, 20, 0.25)' : 'var(--bg-secondary)',
-                        border: formData.icon === ic ? '2px solid var(--brand-orange)' : '1px solid var(--border)',
-                        fontSize: '1.2rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {ic}
-                    </button>
-                  ))}
+                  {availableIcons.map(({ id, Icon, label }) => {
+                    const isSelected = formData.icon === id || (id === 'gaming' && formData.icon === '\uD83C\uDFAE') || (id === 'package' && formData.icon === '\uD83D\uDCE6');
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        title={label}
+                        onClick={() => setFormData({ ...formData, icon: id })}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 8,
+                          background: isSelected ? 'rgba(255, 94, 20, 0.25)' : 'var(--bg-secondary)',
+                          border: isSelected ? '2px solid var(--brand-orange)' : '1px solid var(--border)',
+                          color: isSelected ? 'var(--brand-orange)' : 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icon size={18} />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

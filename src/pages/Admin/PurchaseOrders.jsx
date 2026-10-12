@@ -15,6 +15,7 @@ import {
   Trash2,
   Clock,
   CheckCheck,
+  X,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 
@@ -853,9 +854,9 @@ export default function AdminPurchaseOrders() {
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', fontSize: '1.2rem', cursor: 'pointer' }}
+                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -1172,9 +1173,9 @@ export default function AdminPurchaseOrders() {
               <button
                 type="button"
                 onClick={() => setSelectedOrder(null)}
-                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', fontSize: '1.2rem', cursor: 'pointer' }}
+                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 

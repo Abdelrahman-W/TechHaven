@@ -163,7 +163,7 @@ export default function Users() {
           style={{ padding: '10px 20px', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontSize: 'var(--text-xs)', gap: 8 }}
         >
           <UserPlus size={16} />
-          <span>➕ إضافة مسؤول جديد (Add Admin)</span>
+          <span>إضافة مسؤول جديد (Add Admin)</span>
         </button>
       </div>
 
@@ -479,7 +479,7 @@ export default function Users() {
                     <td style={{ padding: '14px 18px', textAlign: 'center' }}>
                       {isSuper ? (
                         <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-dim)' }}>
-                          حساب المالك الرئيسي محمى 🔒
+                          حساب المالك الرئيسي محمي
                         </span>
                       ) : (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -502,7 +502,7 @@ export default function Users() {
                             }}
                             title={isAdmin ? 'تخفيض لرتبة عميل' : 'ترقية لمسؤول'}
                           >
-                            {isAdmin ? 'تنزيل لعميل' : 'ترقية لمسؤول 🛡️'}
+                            {isAdmin ? 'تنزيل لعميل' : 'ترقية لمسؤول'}
                           </button>
 
                           <button

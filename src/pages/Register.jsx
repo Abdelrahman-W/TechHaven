@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ShieldCheck, Lock, AlertCircle, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -55,7 +56,9 @@ export default function Register() {
         <div className="th-auth-banner">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <span style={{ fontSize: '1.8rem' }}>⚡</span>
+              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-xs)', background: 'rgba(255, 94, 20, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-orange)' }}>
+                <ShieldCheck size={20} />
+              </div>
               <span style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>
                 Tech<span style={{ color: 'var(--brand-orange)' }}>Haven</span>
               </span>
@@ -65,19 +68,19 @@ export default function Register() {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                <span style={{ color: 'var(--secondary)', fontSize: '1.1rem', fontWeight: 900 }}>✓</span>
+                <Check size={16} style={{ color: 'var(--brand-orange)', flexShrink: 0, marginTop: 2 }} />
                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
                   {isRtl ? 'حفظ وتخصيص تجميعات الحواسيب ومشاركتها بسهولة' : 'Save and customize your custom PC rigs and share with friends'}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                <span style={{ color: 'var(--secondary)', fontSize: '1.1rem', fontWeight: 900 }}>✓</span>
+                <Check size={16} style={{ color: 'var(--brand-orange)', flexShrink: 0, marginTop: 2 }} />
                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
                   {isRtl ? 'عروض الجملة والشركات وبرامج استبدال العتاد المعتمدة' : 'Access enterprise wholesale deals & certified hardware trade-in'}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                <span style={{ color: 'var(--secondary)', fontSize: '1.1rem', fontWeight: 900 }}>✓</span>
+                <Check size={16} style={{ color: 'var(--brand-orange)', flexShrink: 0, marginTop: 2 }} />
                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
                   {isRtl ? 'تتبع مباشر ومؤمن لخط سير الشحنة حتى باب منزلك' : 'Live and insured shipment tracking directly to your door'}
                 </span>
@@ -85,8 +88,9 @@ export default function Register() {
             </div>
           </div>
 
-          <small style={{ color: 'var(--text-muted)', marginTop: '20px', display: 'block' }}>
-            🔒 {isRtl ? 'بياناتك مشفرة ومحمية بأعلى معايير الأمان العالمية.' : 'Your data is 100% encrypted & protected by global security standards.'}
+          <small style={{ color: 'var(--text-muted)', marginTop: '20px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Lock size={13} style={{ color: '#10B981', flexShrink: 0 }} />
+            <span>{isRtl ? 'بياناتك مشفرة ومحمية بأعلى معايير الأمان العالمية.' : 'Your data is 100% encrypted & protected by global security standards.'}</span>
           </small>
         </div>
 
@@ -102,16 +106,20 @@ export default function Register() {
           {error && (
             <div
               style={{
-                background: 'rgba(255, 107, 107, 0.15)',
-                border: '1px solid var(--danger)',
+                background: 'rgba(255, 107, 107, 0.12)',
+                border: '1px solid rgba(255, 107, 107, 0.35)',
                 color: '#FF6B6B',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-sm)',
                 padding: '10px 14px',
                 fontSize: '0.85rem',
                 marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
-              ⚠️ {error}
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{error}</span>
             </div>
           )}
 

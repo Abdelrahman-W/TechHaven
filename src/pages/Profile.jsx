@@ -47,7 +47,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="page" style={{ padding: 'var(--space-8) 0 var(--space-16)', direction: isRtl ? 'rtl' : 'ltr' }}>
+    <div className="page" style={{ padding: 'clamp(16px, 3vw, var(--space-8)) 0 calc(92px + env(safe-area-inset-bottom, 0px))', direction: isRtl ? 'rtl' : 'ltr' }}>
       <div className="container" style={{ maxWidth: '1000px' }}>
         {/* Profile Header Card */}
         <div
@@ -383,7 +383,7 @@ export default function Profile() {
                 type="button"
                 className="btn btn-primary btn-apple-tactile"
                 style={{ width: 'fit-content', padding: '10px 24px' }}
-                onClick={() => toast.success(isRtl ? 'تم تحديث كلمة المرور بنجاح ✓' : 'Password updated successfully ✓')}
+                onClick={() => toast.success(isRtl ? 'تم تحديث كلمة المرور بنجاح' : 'Password updated successfully')}
               >
                 {isRtl ? 'تحديث كلمة المرور' : 'Update Password'}
               </button>

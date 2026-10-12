@@ -101,7 +101,7 @@ export default function QuickViewModal({ product, isOpen, onClose }) {
     if (addFn) {
       addFn(product, qty, false);
       setIsAdded(true);
-      toast.success(isRtl ? `تمت إضافة "${product.name}" إلى السلة 🛒` : `Added "${product.name_en || product.name}" to cart 🛒`);
+      toast.success(isRtl ? `تمت إضافة "${product.name}" إلى السلة` : `Added "${product.name_en || product.name}" to cart`);
       setTimeout(() => setIsAdded(false), 2000);
     }
   };

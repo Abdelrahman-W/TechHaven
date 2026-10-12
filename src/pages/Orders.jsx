@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShieldAlert } from 'lucide-react';
+import { Search, ShieldAlert, Package, PackageOpen } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -87,8 +87,9 @@ export default function Orders() {
         <div className="container" style={{ maxWidth: '960px' }}>
           {/* Header */}
           <div style={{ marginBottom: '24px' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>
-              📦 {isRtl ? 'تتبع شحنة وطلب الزائر' : 'Guest Order Tracking'}
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Package size={26} style={{ color: 'var(--brand-orange)' }} />
+              <span>{isRtl ? 'تتبع شحنة وطلب الزائر' : 'Guest Order Tracking'}</span>
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
               {isRtl
@@ -302,8 +303,9 @@ export default function Orders() {
       <div className="container" style={{ maxWidth: '960px' }}>
         {/* Header */}
         <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 900, color: '#fff', marginBottom: '8px' }}>
-            📦 {isRtl ? 'مشترياتي وطلباتي' : 'My Orders & Purchases'}
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Package size={26} style={{ color: 'var(--brand-orange)' }} />
+            <span>{isRtl ? 'مشترياتي وطلباتي' : 'My Orders & Purchases'}</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
             {isRtl
@@ -347,7 +349,9 @@ export default function Orders() {
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="empty-state">
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '14px' }}>📦</span>
+            <div style={{ width: 64, height: 64, borderRadius: 'var(--radius-sm)', background: 'rgba(255, 94, 20, 0.1)', color: 'var(--brand-orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+              <PackageOpen size={32} />
+            </div>
             <h3 style={{ color: '#fff', marginBottom: '8px' }}>
               {isRtl ? 'لا توجد طلبات في هذا القسم' : 'No orders found in this category'}
             </h3>

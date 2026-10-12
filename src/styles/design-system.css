@@ -55,9 +55,9 @@
   /* ── WCAG AA Typography ───────────────────────────────────── */
   /* #FFFFFF on #14161F → 15.4:1 (AAA)
      #D1D5DB on #14161F → 9.4:1  (AAA)
-     #9CA3AF on #14161F → 5.1:1  (AA ✓)
+     #9CA3AF on #14161F → 5.1:1  (AA Pass)
      #6B7280 on #14161F → 3.1:1  (AA Large only)
-     #FF5E14 on #0A0B0E → 4.6:1  (AA ✓) */
+     #FF5E14 on #0A0B0E → 4.6:1  (AA Pass) */
   --text-primary:       #FFFFFF;
   --text-secondary:     #C9CDD5;    /* upgraded from #D1D5DB for better contrast */
   --text-muted:         #9CA3AF;    /* WCAG AA at 5.1:1 */

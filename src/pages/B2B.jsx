@@ -15,6 +15,10 @@ import {
   Sparkles,
   FileText,
   Check,
+  Laptop,
+  Video,
+  Cpu,
+  Gamepad2,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useLanguage } from '../context/LanguageContext';
@@ -27,7 +31,7 @@ export default function B2B() {
   const BUNDLES = [
     {
       id: 'startup',
-      icon: '💻',
+      Icon: Laptop,
       nameAr: 'أسطول المكاتب والشركات الناشئة',
       nameEn: 'Startup & Office Fleet',
       specsAr: 'معالجات Intel Core i5 / AMD Ryzen 5، رامات 16GB DDR5، قرص 1TB NVMe Gen4، شاشة 27" IPS مريحة للعين',
@@ -37,7 +41,7 @@ export default function B2B() {
     },
     {
       id: 'creative',
-      icon: '🎬',
+      Icon: Video,
       nameAr: 'محطات المونتاج والتصميم 3D',
       nameEn: 'Creative Studio & 3D VFX',
       specsAr: 'معالجات Core i7-14700K / Ryzen 7، كارت RTX 4070 Super 12GB، رامات 32GB DDR5، تخزين 2TB Gen4، شاشة 27" 2K 100% sRGB',
@@ -47,7 +51,7 @@ export default function B2B() {
     },
     {
       id: 'ai_compute',
-      icon: '⚡',
+      Icon: Cpu,
       nameAr: 'سيرفرات الذكاء الاصطناعي والبيانات',
       nameEn: 'AI Compute & Data Servers',
       specsAr: 'كروت Dual RTX 4090 / RTX Ada، معالجات Threadripper / Xeon، رامات 128GB ECC، مصفوفة 8TB NVMe RAID، بطاقة شبكة 10GbE',
@@ -57,7 +61,7 @@ export default function B2B() {
     },
     {
       id: 'esports',
-      icon: '🎮',
+      Icon: Gamepad2,
       nameAr: 'صالات وأكاديميات Esports',
       nameEn: 'Esports Arena Gaming Fleet',
       specsAr: 'معالجات AMD Ryzen 7 7800X3D، كارت RTX 4070، رامات 32GB 6000MHz، شاشات 240Hz Fast-IPS، ملحقات احترافية كاملة',
@@ -332,22 +336,14 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
             </div>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.2fr 1fr',
-              gap: '32px',
-              marginTop: '28px',
-              alignItems: 'start',
-            }}
-          >
+          <div className="th-b2b-calc-grid">
             {/* Left Column: Bundle Selection & Quantity Slider */}
             <div>
               <label style={{ display: 'block', color: 'var(--text-primary)', fontWeight: 800, fontSize: '0.9rem', marginBottom: '10px' }}>
                 {t('calc_select_bundle')}
               </label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+              <div className="th-b2b-bundles-grid">
                 {BUNDLES.map((bundle) => {
                   const isActive = bundle.id === selectedBundleId;
                   return (
@@ -358,7 +354,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
                       onClick={() => setSelectedBundleId(bundle.id)}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '1.4rem' }}>{bundle.icon}</span>
+                        <bundle.Icon size={18} style={{ color: isActive ? 'var(--brand-orange)' : '#9CA3AF' }} />
                         <strong style={{ color: '#fff', fontSize: '0.92rem' }}>
                           {lang === 'ar' ? bundle.nameAr : bundle.nameEn}
                         </strong>
@@ -568,28 +564,28 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
           >
             {[
               {
-                icon: '💻',
+                Icon: Laptop,
                 title: t('pkg_startup_title'),
                 desc: t('pkg_startup_desc'),
                 tag: lang === 'ar' ? 'الشركات الناشئة' : 'Startups',
                 bundleKey: 'startup',
               },
               {
-                icon: '🎬',
+                Icon: Video,
                 title: t('pkg_creative_title'),
                 desc: t('pkg_creative_desc'),
                 tag: lang === 'ar' ? 'استوديوهات 3D' : 'Creative & VFX',
                 bundleKey: 'creative',
               },
               {
-                icon: '⚡',
+                Icon: Cpu,
                 title: t('pkg_ai_title'),
                 desc: t('pkg_ai_desc'),
                 tag: lang === 'ar' ? 'سيرفرات الذكاء الاصطناعي' : 'AI Compute',
                 bundleKey: 'ai_compute',
               },
               {
-                icon: '🎮',
+                Icon: Gamepad2,
                 title: t('pkg_esports_title'),
                 desc: t('pkg_esports_desc'),
                 tag: lang === 'ar' ? 'صالات الألعاب' : 'Esports Arenas',
@@ -611,7 +607,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
               >
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <span style={{ fontSize: '2.2rem' }}>{pkg.icon}</span>
+                    <pkg.Icon size={26} style={{ color: 'var(--brand-orange)' }} />
                     <span
                       style={{
                         background: 'rgba(255, 255, 255, 0.06)',
@@ -781,24 +777,10 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
         {/* 5. Official ETA Quotation / RFP Form */}
         <div
           ref={formRef}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 1fr',
-            gap: '36px',
-            alignItems: 'start',
-            marginBottom: '48px',
-          }}
+          className="th-b2b-rfp-layout"
         >
           {/* RFP Form */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-primary)',
-              borderRadius: 'var(--radius-2xl)',
-              padding: '36px',
-              boxShadow: 'var(--shadow-card)',
-            }}
-          >
+          <div className="th-b2b-card">
             {!submitted ? (
               <form onSubmit={handleSubmit}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
@@ -828,7 +810,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
                 </p>
 
                 {/* Company Name & Tax ID */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div className="th-b2b-form-row">
                   <div>
                     <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 700 }}>
                       {t('form_company_name')} *
@@ -874,7 +856,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
                 </div>
 
                 {/* Contact Person & Corporate Email */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div className="th-b2b-form-row">
                   <div>
                     <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 700 }}>
                       {t('form_contact_name')} *
@@ -921,7 +903,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
                 </div>
 
                 {/* Phone & Sector */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div className="th-b2b-form-row">
                   <div>
                     <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 700 }}>
                       {t('form_phone')} *
@@ -972,7 +954,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
                 </div>
 
                 {/* Timeline & Device Count */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div className="th-b2b-form-row">
                   <div>
                     <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 700 }}>
                       {t('form_timeline')}
@@ -1124,14 +1106,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
           </div>
 
           {/* Institutional Guarantees & Why TechHaven */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-primary)',
-              borderRadius: 'var(--radius-2xl)',
-              padding: '32px',
-            }}
-          >
+          <div className="th-b2b-card">
             <h3 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 800, marginBottom: '20px' }}>
               {lang === 'ar' ? 'مزايا التعاقد المؤسسي مع TechHaven:' : 'Corporate Procurement Advantages:'}
             </h3>
@@ -1186,7 +1161,7 @@ Estimated Net Total: ${estimatedTotal.toLocaleString()} ${currency} (Net Unit Pr
                       marginTop: '2px',
                     }}
                   >
-                    ✓
+                    <Check size={14} />
                   </div>
                   <div>
                     <strong style={{ color: '#fff', fontSize: '0.92rem', display: 'block', marginBottom: '3px' }}>

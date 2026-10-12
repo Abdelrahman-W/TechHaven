@@ -126,9 +126,9 @@ export default function CartDrawer() {
           <div
             style={{
               width: '100%',
-              height: '5px',
+              height: '4px',
               background: 'rgba(255,255,255,0.08)',
-              borderRadius: '999px',
+              borderRadius: 'var(--radius-xs)',
               overflow: 'hidden',
             }}
           >
@@ -136,7 +136,7 @@ export default function CartDrawer() {
               style={{
                 width: `${freeShippingProgress}%`,
                 height: '100%',
-                background: 'linear-gradient(90deg, var(--brand-orange), #FFA502)',
+                background: 'var(--brand-orange)',
                 transition: 'width 0.3s ease',
               }}
             />
@@ -155,11 +155,11 @@ export default function CartDrawer() {
             >
               <div
                 style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: 'var(--radius-full)',
+                  width: '72px',
+                  height: '72px',
+                  borderRadius: 'var(--radius-sm)',
                   background: 'var(--bg-card)',
-                  border: '1px dashed var(--border)',
+                  border: '1px dashed var(--border-default)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

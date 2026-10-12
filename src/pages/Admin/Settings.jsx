@@ -87,7 +87,7 @@ export default function Settings() {
     instapay_address: 'techhaven@instapay',
     maintenance_mode: false,
     announcement_active: true,
-    announcement_text: '🔥 تخفيضات كبرى على كروت الشاشة وشاشات 240Hz لفترة محدودة | شحن مجاني للطلبات فوق 2500 ج.م',
+    announcement_text: 'تخفيضات كبرى على كروت الشاشة وشاشات 240Hz لفترة محدودة | شحن مجاني للطلبات فوق 2500 ج.م',
     announcement_link: '/shop',
     // Paymob Credentials
     paymob_mode: 'sandbox',
@@ -357,7 +357,7 @@ export default function Settings() {
           }}
         >
           <AlertCircle size={20} />
-          <span>⚠️ تحذير: وضع الصيانة مفعل حالياً! الزوار العاديين سيشاهدون صفحة الصيانة فقط.</span>
+          <span>تحذير: وضع الصيانة مفعل حالياً! الزوار العاديين سيشاهدون صفحة الصيانة فقط.</span>
         </div>
       )}
 
@@ -1045,8 +1045,8 @@ export default function Settings() {
                           >
                             {typeof window !== 'undefined' ? `${window.location.origin}/api/payments/paymob/webhook` : 'http://localhost:4000/api/payments/paymob/webhook'}
                           </div>
-                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', marginTop: 6 }}>
-                            💡 الصق هذا الرابط داخل حسابك في Paymob ➔ Dashboard ➔ Settings ➔ Callback URLs ➔ Transaction Processed Callback لتحديث الأوردرات تلقائياً عند نجاح الدفع.
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: 8, lineHeight: 1.5 }}>
+                            الصق هذا الرابط داخل حسابك في Paymob (Dashboard &rarr; Settings &rarr; Callback URLs &rarr; Transaction Processed Callback) لتحديث الأوردرات تلقائياً عند نجاح الدفع.
                           </div>
                         </div>
 
@@ -1113,7 +1113,7 @@ export default function Settings() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ fontWeight: 800, color: '#FFF', fontSize: '1rem', marginBottom: 4 }}>
-                          📱 المحافظ الإلكترونية (فودافون كاش / اتصالات / أورنج / وي كاش)
+                          المحافظ الإلكترونية (فودافون كاش / اتصالات / أورنج / وي كاش)
                         </div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                           الدفع عبر التحويل للمحفظة ورفع إشعار المعاملة للتحقق
@@ -1159,7 +1159,7 @@ export default function Settings() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ fontWeight: 800, color: '#FFF', fontSize: '1rem', marginBottom: 4 }}>
-                          ⚡ شبكة المدفوعات اللحظية انستاباي (InstaPay)
+                          شبكة المدفوعات اللحظية انستاباي (InstaPay)
                         </div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                           دفع فوري عبر حساب البنك المركزي المصري بدون رسوم إضافية
@@ -1205,7 +1205,7 @@ export default function Settings() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ fontWeight: 800, color: '#FFF', fontSize: '1rem', marginBottom: 4 }}>
-                          💵 الدفع عند الاستلام (Cash On Delivery)
+                          الدفع عند الاستلام (Cash On Delivery)
                         </div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                           سداد قيمة الأوردر نقداً لمندوب الشحن عند استلام وفحص الطرد
@@ -1280,8 +1280,8 @@ export default function Settings() {
                 <div className="card" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-                        🌐
+                      <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Globe size={20} style={{ color: 'var(--primary)' }} />
                       </div>
                       <div>
                         <h4 style={{ margin: '0 0 4px', color: '#FFF', fontSize: '1.05rem', fontWeight: 800 }}>Google OAuth 2.0</h4>
@@ -1351,8 +1351,8 @@ export default function Settings() {
                 <div className="card" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(24, 119, 242, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
-                        📘
+                      <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(24, 119, 242, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Share2 size={20} style={{ color: '#1877F2' }} />
                       </div>
                       <div>
                         <h4 style={{ margin: '0 0 4px', color: '#FFF', fontSize: '1.05rem', fontWeight: 800 }}>Facebook / Meta Login</h4>
@@ -1455,7 +1455,7 @@ export default function Settings() {
                       }}
                     >
                       <CreditCard size={16} />
-                      إعدادات بوابة Paymob للدفع ➔
+                      <span>إعدادات بوابة Paymob للدفع</span>
                     </button>
                   </div>
                 </div>

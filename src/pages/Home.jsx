@@ -31,173 +31,166 @@ import ProductCard from '../components/ProductCard';
 
 const SLIDE_DURATION = 6000;
 
-// ── Fallback Product Data ─────────────────────────────────────────
+// ── Fallback High-Performance Hardware Data ──────────────────────
 const fallbackFeatured = [
   {
-    id: 'prod-headphones',
-    name: 'TechHaven Studio Pro Wireless ANC',
-    price: 9800,
-    old_price: 11500,
+    id: 'prod-gpu-4090',
+    name: 'ASUS ROG Strix GeForce RTX 4090 24GB OC GDDR6X',
+    name_en: 'ASUS ROG Strix GeForce RTX 4090 24GB OC GDDR6X',
+    price: 98000,
+    old_price: 105000,
     rating: 4.95,
-    review_count: 142,
-    category_id: 'cat-headphones',
+    review_count: 86,
+    category_id: 'cat-gpu',
     badge: 'FLAGSHIP',
-    thumbnail: '/images/prod-headphones.jpg',
-    images: ['/images/prod-headphones.jpg', '/images/hero-1.jpg'],
-    specs: { 'نوع الاتصال': 'Bluetooth 5.3 + AUX', 'إلغاء الضوضاء': 'Hybrid ANC 4-Mic' },
+    thumbnail: '/images/hero-1.jpg',
+    images: ['/images/hero-1.jpg'],
+    specs: { 'الذاكرة': '24GB GDDR6X', 'الواجهة': 'PCIe 4.0 x16', 'القدرة الموصى بها': '1000W' },
   },
   {
-    id: 'prod-airpods',
-    name: 'TechHaven AirPods Pro 2',
-    price: 8499,
-    old_price: 9999,
+    id: 'prod-cpu-14900k',
+    name: 'Intel Core i9-14900K Desktop Processor (24 Cores / 32 Threads)',
+    name_en: 'Intel Core i9-14900K 24-Core Desktop Processor',
+    price: 27900,
+    old_price: 31000,
     rating: 4.9,
-    review_count: 128,
-    category_id: 'cat-headphones',
-    badge: 'NEW',
-    thumbnail: '/images/prod-airpods.jpg',
-    images: ['/images/prod-airpods.jpg'],
-    specs: { 'نوع الاتصال': 'Bluetooth 5.3', 'إلغاء الضوضاء': '2x Active Noise Cancellation' },
-  },
-  {
-    id: 'prod-watch',
-    name: 'TH Watch Ultra Smartwatch',
-    price: 14999,
-    old_price: 16999,
-    rating: 4.8,
-    review_count: 96,
-    category_id: 'cat-smartwatches',
-    badge: 'POPULAR',
-    thumbnail: '/images/prod-watch.jpg',
-    images: ['/images/prod-watch.jpg'],
-    specs: { 'الهيكل': 'Titanium 49mm', 'الشاشة': 'Always-On Retina OLED' },
-  },
-  {
-    id: 'prod-phone',
-    name: 'TH Phone 15 Pro Max 256GB Titanium',
-    price: 49999,
-    old_price: 54999,
-    rating: 4.95,
-    review_count: 240,
-    category_id: 'cat-smartphones',
-    badge: 'FLAGSHIP',
-    thumbnail: '/images/prod-phone.jpg',
-    images: ['/images/prod-phone.jpg'],
-    specs: { 'الشاشة': '6.7" OLED 120Hz', 'الكاميرا': '48MP 5x Optical' },
-  },
-  {
-    id: 'prod-laptop',
-    name: 'TechHaven AeroBook 14 OLED',
-    price: 34999,
-    old_price: 39999,
-    rating: 4.85,
-    review_count: 74,
-    category_id: 'cat-laptops',
-    badge: 'SALE',
-    thumbnail: '/images/prod-laptop.jpg',
-    images: ['/images/prod-laptop.jpg'],
-    specs: { 'الشاشة': '14.0" 2.8K OLED', 'الوزن': '1.24 kg' },
-  },
-  {
-    id: 'prod-camera',
-    name: 'TH Capture X1 Mirrorless 4K',
-    price: 42500,
-    old_price: 46000,
-    rating: 4.9,
-    review_count: 53,
-    category_id: 'cat-cameras',
-    badge: 'PRO',
-    thumbnail: '/images/prod-camera.jpg',
-    images: ['/images/prod-camera.jpg'],
-    specs: { 'المستشعر': '33MP Full-Frame', 'الفيديو': '4K 60p 10-bit' },
-  },
-  {
-    id: 'prod-speaker',
-    name: 'TH SoundBoom 360 Wireless',
-    price: 6800,
-    old_price: 7900,
-    rating: 4.75,
-    review_count: 88,
-    category_id: 'cat-speakers',
+    review_count: 64,
+    category_id: 'cat-cpu',
     badge: 'HOT',
-    thumbnail: '/images/prod-speaker.jpg',
-    images: ['/images/prod-speaker.jpg'],
-    specs: { 'الصوت': '360° Omnidirectional', 'القدرة': '60W RMS' },
+    thumbnail: '/images/hero-2.jpg',
+    images: ['/images/hero-2.jpg'],
+    specs: { 'المقبس': 'LGA1700', 'التردد الأقصى': '6.0 GHz', 'الأنوية': '24 Cores' },
+  },
+  {
+    id: 'prod-cpu-7800x3d',
+    name: 'AMD Ryzen 7 7800X3D Gaming Processor with 3D V-Cache',
+    name_en: 'AMD Ryzen 7 7800X3D Processor with 3D V-Cache',
+    price: 21500,
+    old_price: 23900,
+    rating: 4.95,
+    review_count: 112,
+    category_id: 'cat-cpu',
+    badge: 'BEST GAMING',
+    thumbnail: '/images/hero-2.jpg',
+    images: ['/images/hero-2.jpg'],
+    specs: { 'المقبس': 'AM5', 'الكاش': '104MB Total Cache', 'التردد': '5.0 GHz' },
+  },
+  {
+    id: 'prod-mb-b650',
+    name: 'MSI MAG B650 TOMAHAWK WIFI Motherboard AM5',
+    name_en: 'MSI MAG B650 TOMAHAWK WIFI Motherboard AM5',
+    price: 11900,
+    old_price: 13200,
+    rating: 4.85,
+    review_count: 42,
+    category_id: 'cat-motherboard',
+    badge: 'PRO',
+    thumbnail: '/images/hero-3.jpg',
+    images: ['/images/hero-3.jpg'],
+    specs: { 'المقبس': 'AM5', 'الذاكرة': 'DDR5 6400+ MHz', 'الشبكة': 'Wi-Fi 6E + 2.5G LAN' },
+  },
+  {
+    id: 'prod-ssd-990pro',
+    name: 'Samsung 990 PRO 2TB NVMe M.2 PCIe 4.0 Internal SSD',
+    name_en: 'Samsung 990 PRO 2TB NVMe PCIe 4.0 SSD',
+    price: 9200,
+    old_price: 10400,
+    rating: 4.9,
+    review_count: 98,
+    category_id: 'cat-storage',
+    badge: 'FASTEST',
+    thumbnail: '/images/hero-1.jpg',
+    images: ['/images/hero-1.jpg'],
+    specs: { 'سرعة القراءة': '7,450 MB/s', 'سرعة الكتابة': '6,900 MB/s', 'الواجهة': 'PCIe Gen 4.0 x4' },
+  },
+  {
+    id: 'prod-ram-ddr5',
+    name: 'Corsair Vengeance RGB 32GB (2x16GB) DDR5 6000MHz CL30',
+    name_en: 'Corsair Vengeance RGB 32GB DDR5 6000MHz Memory',
+    price: 6800,
+    old_price: 7600,
+    rating: 4.8,
+    review_count: 53,
+    category_id: 'cat-ram',
+    badge: 'POPULAR',
+    thumbnail: '/images/hero-2.jpg',
+    images: ['/images/hero-2.jpg'],
+    specs: { 'السعة': '32GB (2x16GB)', 'التردد': '6000MHz', 'التوقيت': 'CL30' },
   },
 ];
 
-// ── Hero Slides Data ──────────────────────────────────────────────
+// ── Hero Slides Data (Hardware Retail Focus) ──────────────────────
 const heroSlides = [
   {
     id: 0,
-    badge: 'SMARTER TECH. BETTER LIFE.',
-    titlePart1: 'UPGRADE TO',
-    titleHighlight: 'NEXT GEN',
-    desc: 'اكتشف سماعات TechHaven Studio Pro اللاسلكية الاحترافية والجيل القادم من العتاد الذكي. أداء فائق وتصميم استثنائي مع ضمان رسمي وشحن فوري.',
-    descEn: 'Discover TechHaven Studio Pro wireless headphones and the next generation of smart hardware. Elite performance with official certified warranty.',
-    ctaText: 'عرض تفاصيل المنتج',
-    ctaTextEn: 'View Product Details',
-    ctaLink: '/product/prod-headphones',
-    productLink: '/product/prod-headphones',
-    categoryLink: '/shop?category=cat-headphones',
-    segmentTitle: 'السماعات والهواتف',
-    segmentTitleEn: 'Audio & Mobile',
-    specsPill: 'TECHHAVEN STUDIO PRO • TH WATCH ULTRA • TITANIUM 15PM',
+    badge: 'ENTHUSIAST HARDWARE • OFFICIAL WARRANTY',
+    titlePart1: 'ENGINEERED POWER',
+    titleHighlight: 'RTX 4090 & CORE I9',
+    desc: 'المستودع المعتمد لعتاد الحوسبة فائق الأداء في مصر. بطاقات الرسوميات ومعالجات الجيل الأحدث مع فحص التوافق وضمان الوكلاء المحليين المعتمدين.',
+    descEn: 'Authorized high-performance computing hardware in Egypt. Latest-gen GPUs and CPUs with engineered compatibility and official warranties.',
+    ctaText: 'استعراض قطع العتاد',
+    ctaTextEn: 'Explore Hardware Catalog',
+    ctaLink: '/shop',
+    productLink: '/shop',
+    categoryLink: '/shop',
+    segmentTitle: 'كروت الشاشة والمعالجات',
+    segmentTitleEn: 'GPUs & CPUs',
+    specsPill: 'RTX 4090 • CORE I9-14900K • RYZEN 7 7800X3D',
     image: '/images/hero-1.jpg',
     accentColor: '#FF5E14',
     props: [
-      { icon: ShieldCheck, title: 'جودة فائقة معتمدة', titleEn: 'Certified Quality', sub: 'ضمان الوكيل الرسمي 100%', subEn: '100% Official Warranty' },
-      { icon: Truck,        title: 'شحن سريع ومجاني',    titleEn: 'Fast Express Delivery', sub: 'توصيل خلال 24 ساعة', subEn: 'Nationwide in 24-48h' },
-      { icon: RotateCcw,   title: 'استرجاع سهل',         titleEn: 'Easy 14-Day Returns', sub: '14 يوماً استبدال فوري', subEn: 'Hassle-free exchange' },
-      { icon: HeadphonesIcon, title: 'دعم فني 24/7',    titleEn: '24/7 Tech Support', sub: 'فريق متخصص دائماً', subEn: 'Hardware specialists' },
+      { icon: ShieldCheck, title: 'ضمان الوكيل الرسمي', titleEn: 'Official Domestic Warranty', sub: 'تغطية محلية 100%', subEn: '100% Official Warranty' },
+      { icon: Truck, title: 'شحن مصفح ومؤمن', titleEn: 'Insured Armored Courier', sub: 'تغليف متخصص للقطع', subEn: 'Safe specialized packaging' },
+      { icon: RotateCcw, title: 'استبدال عيوب الصناعة', titleEn: '14-Day DOA Exchange', sub: 'استبدال فوري للقطع', subEn: 'Hassle-free exchange' },
+      { icon: HeadphonesIcon, title: 'دعم مهندسي العتاد', titleEn: 'Hardware Engineers', sub: 'فريق استشاري متخصص', subEn: 'Hardware specialists' },
     ],
   },
   {
     id: 1,
-    badge: 'ULTRA-PORTABLE COMPUTING',
-    titlePart1: 'ENGINEERED FOR',
-    titleHighlight: 'PEAK SPEED',
-    desc: 'لابتوب AeroBook 14 بشاشة 2.8K OLED ووزن 1.2 كجم فقط — أداء فائق للمحترفين والمبدعين مع بطارية تدوم 18 ساعة.',
-    descEn: 'AeroBook 14 with 2.8K OLED display and weighing only 1.2 kg — extreme performance for creators with 18-hour battery endurance.',
-    ctaText: 'عرض تفاصيل المنتج',
-    ctaTextEn: 'View Product Details',
-    ctaLink: '/product/prod-laptop',
-    productLink: '/product/prod-laptop',
-    categoryLink: '/shop?category=cat-laptops',
-    segmentTitle: 'أجهزة وألعاب',
-    segmentTitleEn: 'Laptops & Gear',
-    specsPill: 'AEROBOOK 14 OLED • TH ELITE CONTROLLER',
+    badge: 'CUSTOM RIG WORKBENCH',
+    titlePart1: 'ZERO INCOMPATIBILITY',
+    titleHighlight: 'PC BUILDER STUDIO',
+    desc: 'جمّع حاسوبك المخصص مع محرك الفحص الآلي لمقبس المعالج، نوع وترددات الذاكرة DDR5، وحساب سعة مزود الطاقة PSU بدقة هندسية موثوقة.',
+    descEn: 'Configure your custom build with automated socket matching, DDR5 memory topology validation, and real-time PSU wattage calculations.',
+    ctaText: 'تشغيل أداة التجميع',
+    ctaTextEn: 'Launch PC Builder',
+    ctaLink: '/pc-builder',
+    productLink: '/pc-builder',
+    categoryLink: '/pc-builder',
+    segmentTitle: 'تجميع الحواسيب المخصصة',
+    segmentTitleEn: 'Custom PC Builds',
+    specsPill: 'AM5 & LGA1700 SOCKET AUDIT • PSU TDP METER',
     image: '/images/hero-2.jpg',
     accentColor: '#FF5E14',
     props: [
-      { icon: ShieldCheck, title: 'شاشات OLED فائقة', titleEn: 'Stunning OLED Panels', sub: 'ألوان حقيقية معتمدة 100%', subEn: '100% DCI-P3 Color' },
-      { icon: Truck,       title: 'شحن آمن ومصفح',     titleEn: 'Insured Armored Courier', sub: 'تغليف متخصص للأجهزة', subEn: 'Safe multi-layer packaging' },
-      { icon: RotateCcw,  title: 'ضمان محلي شامل',     titleEn: 'Comprehensive Warranty', sub: 'صيانة وقطع أصلية', subEn: 'Genuine parts & repair' },
-      { icon: Zap,         title: 'تهيئة احترافية',    titleEn: 'Pro Out-of-Box Setup', sub: 'استلم جهازك جاهزاً', subEn: 'Pre-tested & tuned' },
+      { icon: ShieldCheck, title: 'فحص المقبس الفوري', titleEn: 'Socket Match Check', sub: 'مطابقة المعالج باللوحة', subEn: 'CPU-to-MB verification' },
+      { icon: Truck, title: 'تجميع واختبار شامل', titleEn: 'Full Stress Testing', sub: 'فحص الحرارة والاستقرار', subEn: 'Thermal testing verified' },
+      { icon: RotateCcw, title: 'ضمان التجميعة الموحد', titleEn: 'Unified Build Warranty', sub: 'صيانة ودعم شامل للقطع', subEn: 'Complete rig coverage' },
+      { icon: Zap, title: 'تسليم جاهز للتشغيل', titleEn: 'Plug & Play Ready', sub: 'إدارة كيابل وتحديث BIOS', subEn: 'Cable management & BIOS' },
     ],
   },
   {
     id: 2,
-    badge: 'CINEMATIC 4K CAPTURE',
-    titlePart1: 'CAPTURE EVERY',
-    titleHighlight: 'MOMENT IN 4K',
-    desc: 'كاميرات بدون مرآة بمستشعر Full Frame وطائرات درونز فائقة الخفة بدقة 4K — صور وفيديو سينمائي لا يُنسى.',
-    descEn: 'Full-frame mirrorless cameras and ultralight 4K drones — capture unforgettable cinematic photos and footage.',
-    ctaText: 'عرض تفاصيل المنتج',
-    ctaTextEn: 'View Product Details',
-    ctaLink: '/product/prod-camera',
-    productLink: '/product/prod-camera',
-    categoryLink: '/shop?category=cat-cameras',
-    segmentTitle: 'كاميرات ودرونز',
-    segmentTitleEn: 'Cameras & Drones',
-    specsPill: 'CAPTURE X1 4K CINE • SKYMASTER 4K DRONE',
+    badge: 'ENTERPRISE & B2B PROCUREMENT',
+    titlePart1: 'DIRECT SUPPLY',
+    titleHighlight: 'WORKSTATIONS & FLEETS',
+    desc: 'تجهيز مقرات العمل والشركات ومختبرات الذكاء الاصطناعي ومقاهي الألعاب بفواتير ضريبية إلكترونية رسمية وخصومات كميات تصاعدية.',
+    descEn: 'Procurement for engineering firms, AI labs, and esports centers with official ETA tax invoices and tiered volume pricing.',
+    ctaText: 'بوابة الشركات B2B',
+    ctaTextEn: 'B2B Enterprise Portal',
+    ctaLink: '/b2b',
+    productLink: '/b2b',
+    categoryLink: '/b2b',
+    segmentTitle: 'حلول ومبيعات الشركات',
+    segmentTitleEn: 'Enterprise & B2B',
+    specsPill: 'ETA ELECTRONIC TAX INVOICE • VOLUME PRICING',
     image: '/images/hero-3.jpg',
     accentColor: '#FF5E14',
     props: [
-      { icon: ShieldCheck, title: 'مستشعرات Full Frame', titleEn: 'Full Frame Sensors', sub: 'دقة سينمائية احترافية', subEn: 'Cinematic precision' },
-      { icon: Truck,       title: 'توصيل لجميع المحافظات', titleEn: 'All Governorates Delivery', sub: 'شحن مؤمن بالكامل', subEn: 'Fully insured shipping' },
-      { icon: RotateCcw,  title: 'فحص قبل الاستلام',      titleEn: 'Inspect Before Accepting', sub: 'ثقة تامة في الجودة', subEn: 'Full peace of mind' },
-      { icon: Award,       title: 'ضمان عالمي معتمد',     titleEn: 'Certified Global Warranty', sub: '2 سنة ضمان رسمي', subEn: '2-year official coverage' },
+      { icon: ShieldCheck, title: 'فواتير ضريبية رسمية', titleEn: 'ETA Tax Invoices', sub: 'متوافقة مع الضرائب 100%', subEn: 'Official tax compliance' },
+      { icon: Truck, title: 'توريد ودعم مخصص', titleEn: 'Dedicated Account SLA', sub: 'تسليم دفعات مجدول', subEn: 'Scheduled fleet delivery' },
+      { icon: RotateCcw, title: 'تسهيلات سداد الشركات', titleEn: 'Flexible Corporate Terms', sub: 'خطط دفع معتمدة', subEn: 'Authorized payment terms' },
+      { icon: Award, title: 'عقود صيانة دورية', titleEn: 'Ongoing Maintenance SLA', sub: 'ضمان استمرارية التشغيل', subEn: 'Business continuity SLA' },
     ],
   },
 ];
@@ -216,43 +209,6 @@ const categories = [
   { id: 'cat-laptops',      name: 'اللابتوبات',       titleEn: 'Laptops',        path: '/shop?category=cat-laptops',      Icon: Laptop },
   { id: 'cat-headphones',   name: 'الإكسسوارات',      titleEn: 'Accessories',    path: '/shop?category=cat-headphones',   Icon: HeadphonesIcon },
   { id: 'cat-networking',   name: 'الشبكات والخوادم',  titleEn: 'Networking',     path: '/shop?category=cat-networking',   Icon: Server },
-];
-
-// ── Testimonials ──────────────────────────────────────────────────
-const testimonials = [
-  {
-    id: 1,
-    quote: 'سماعات AirPods Pro 2 غيرت تجربتي تماماً. عزل الضوضاء النشط مذهل والبطارية تكفي طوال اليوم. التوصيل في أقل من 24 ساعة!',
-    quoteEn: 'AirPods Pro 2 completely changed my daily workflow. ANC is superb and the battery lasts all day. Delivered in under 24 hours!',
-    name: 'أحمد سامي',
-    nameEn: 'Ahmed Samy',
-    city: 'القاهرة',
-    cityEn: 'Cairo',
-    product: 'AirPods Pro 2',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 2,
-    quote: 'ساعة TH Watch Ultra بتصميم التيتانيوم خرافية! دقة تتبع نبضات القلب والـ GPS ممتازة وخدمة الدعم الفني راقية جداً.',
-    quoteEn: 'TH Watch Ultra titanium build is fantastic! Precision heart rate and GPS tracking, plus top-notch customer care.',
-    name: 'منى إبراهيم',
-    nameEn: 'Mona Ibrahim',
-    city: 'الإسكندرية',
-    cityEn: 'Alexandria',
-    product: 'TH Watch Ultra',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 3,
-    quote: 'لابتوب AeroBook 14 بشاشة OLED ألوانها ساحرة ومريحة للعين. خفيف وأداؤه فائق السرعة في البرمجة والتصميم.',
-    quoteEn: 'AeroBook 14 OLED screen colors are stunning and comfortable for long sessions. Extremely lightweight and rapid compiling.',
-    name: 'كريم الشرقاوي',
-    nameEn: 'Kareem El-Sharkawy',
-    city: 'الشيخ زايد',
-    cityEn: 'Sheikh Zayed',
-    product: 'AeroBook 14 OLED',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
-  },
 ];
 
 // ── Pre-built Gaming & Workstation Systems ────────────────────────
@@ -288,8 +244,8 @@ const PREBUILT_SYSTEMS = [
     subtitleEn: 'Ultra-smooth 144Hz+ 2K QHD gaming and seamless Twitch/YouTube live streaming',
     price: 48999,
     oldPrice: 53500,
-    badge: 'اختيار الجيمرز المحترفين 🔥',
-    badgeEn: 'Pro Gamers Choice 🔥',
+    badge: 'الأكثر طلباً للتنافسية',
+    badgeEn: 'Competitive Benchmark',
     specs: [
       { label: 'المعالج', labelEn: 'CPU', val: 'AMD Ryzen 5 7600X (Zen 4 5.3GHz)' },
       { label: 'كارت الشاشة', labelEn: 'GPU', val: 'NVIDIA RTX 4070 Super 12GB GDDR6X' },
@@ -325,13 +281,13 @@ const PREBUILT_SYSTEMS = [
   },
 ];
 
-// ── Product Filter Tabs ───────────────────────────────────────────
+// ── Product Filter Tabs (Authentic Hardware Categories) ───────────
 const PRODUCT_TABS = [
-  { key: 'all',           label: 'الكل' },
-  { key: 'audio-phone',   label: 'سماعات وهواتف' },
-  { key: 'watch-laptop',  label: 'ساعات ولابتوبات' },
-  { key: 'camera-speaker',label: 'كاميرات ومكبرات' },
-  { key: 'deals',         label: '🔥 عروض' },
+  { key: 'all',         label: 'الكل' },
+  { key: 'gpus',        label: 'كروت الشاشة' },
+  { key: 'cpus-mb',     label: 'معالجات ولوحات' },
+  { key: 'ram-storage', label: 'رامات وتخزين' },
+  { key: 'deals',       label: 'عروض العتاد' },
 ];
 
 export default function Home() {
@@ -451,7 +407,7 @@ export default function Home() {
     { key: 'audio-phone',   label: t('home_tab_audio_phone', 'سماعات وهواتف') },
     { key: 'watch-laptop',  label: t('home_tab_watch_laptop', 'ساعات ولابتوبات') },
     { key: 'camera-speaker',label: t('home_tab_camera_speaker', 'كاميرات ومكبرات') },
-    { key: 'deals',         label: t('home_tab_deals', '🔥 عروض') },
+    { key: 'deals',         label: t('home_tab_deals', 'عروض التخفيضات') },
   ];
 
   return (
@@ -851,7 +807,7 @@ export default function Home() {
               return (
                 <Link key={cat.id || cat.slug} to={catPath} className="th-native-cat-card th-touch-haptic">
                   <div className="th-native-cat-icon">
-                    {cat.Icon ? <cat.Icon size={22} /> : <span style={{ fontSize: '1.4rem' }}>{cat.icon || '⚡'}</span>}
+                    {cat.Icon ? <cat.Icon size={22} /> : <Cpu size={22} />}
                   </div>
                   <div className="th-native-cat-name">{displayName}</div>
                 </Link>
@@ -868,22 +824,23 @@ export default function Home() {
         <div className="container">
           <div
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 94, 20, 0.12) 0%, rgba(18, 20, 28, 0.98) 100%)',
-              border: '1px solid rgba(255, 94, 20, 0.3)',
-              borderRadius: 'var(--radius-xl)',
-              padding: '36px 32px',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-default)',
+              borderLeft: isRtl ? '1px solid var(--border-default)' : '3px solid var(--brand-orange)',
+              borderRight: isRtl ? '3px solid var(--brand-orange)' : '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '32px 28px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: 28,
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
             <div style={{ maxWidth: 640, position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,94,20,0.15)', border: '1px solid rgba(255,94,20,0.4)', borderRadius: 9999, padding: '4px 12px', fontSize: 'var(--text-xs)', fontWeight: 800, color: 'var(--brand-orange)', marginBottom: 14 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,94,20,0.1)', border: '1px solid rgba(255,94,20,0.3)', borderRadius: 'var(--radius-xs)', padding: '3px 10px', fontSize: 'var(--text-xs)', fontWeight: 800, color: 'var(--brand-orange)', marginBottom: 14 }}>
                 <Cpu size={14} />
                 <span>{t('home_pcbuilder_banner_badge', 'محرك التوافق الذكي')} • COMPATIBILITY ENGINE</span>
               </div>
@@ -975,8 +932,8 @@ export default function Home() {
                 <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff' }}>
                   {isRtl ? 'مثال لتجميعة متوافقة' : 'Sample Compatible Rig'}
                 </span>
-                <span style={{ fontSize: '0.72rem', background: '#10B981', color: '#fff', padding: '2px 8px', borderRadius: 4, fontWeight: 800 }}>
-                  {isRtl ? 'متوافق 100% ✓' : '100% Compatible ✓'}
+                <span style={{ fontSize: '0.72rem', background: '#10B981', color: '#fff', padding: '2px 8px', borderRadius: 'var(--radius-xs)', fontWeight: 800 }}>
+                  {isRtl ? 'متوافق 100%' : '100% Compatible'}
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.8rem' }}>
@@ -1159,10 +1116,11 @@ export default function Home() {
             <div style={{
               display: 'flex', alignItems: 'center', gap: 4,
               background: 'var(--bg-secondary)',
-              padding: 4, borderRadius: 'var(--radius-full)',
+              padding: 4, borderRadius: 'var(--radius-xs)',
               border: '1px solid var(--border)',
               overflowX: 'auto', scrollbarWidth: 'none',
-              flexShrink: 0,
+              maxWidth: '100%',
+              minWidth: 0,
             }}>
               {productTabs.map((tab) => {
                 const isActive = selectedTab === tab.key;
@@ -1174,14 +1132,13 @@ export default function Home() {
                       background: isActive ? 'var(--brand-orange)' : 'transparent',
                       color: isActive ? '#fff' : 'var(--text-muted)',
                       border: 'none',
-                      borderRadius: 'var(--radius-full)',
-                      padding: '6px 18px',
+                      borderRadius: 'var(--radius-xs)',
+                      padding: '6px 16px',
                       fontSize: 'var(--text-xs)',
                       fontWeight: 800,
                       cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.25,1,0.5,1)',
+                      transition: 'all 0.15s ease',
                       whiteSpace: 'nowrap',
-                      boxShadow: isActive ? 'var(--shadow-orange)' : 'none',
                     }}
                   >
                     {tab.label}
@@ -1232,10 +1189,12 @@ export default function Home() {
         <div className="container">
           <div
             style={{
-              background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(18, 20, 28, 0.95) 100%)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
-              borderRadius: 'var(--radius-xl)',
-              padding: '32px',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-default)',
+              borderLeft: isRtl ? '1px solid var(--border-default)' : '3px solid #38BDF8',
+              borderRight: isRtl ? '3px solid #38BDF8' : '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '32px 28px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -1258,11 +1217,11 @@ export default function Home() {
             <Link
               to="/b2b"
               style={{
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '1px solid rgba(56, 189, 248, 0.4)',
+                background: 'rgba(56, 189, 248, 0.12)',
+                border: '1px solid rgba(56, 189, 248, 0.35)',
                 color: '#38BDF8',
                 padding: '12px 24px',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: 'var(--radius-xs)',
                 fontWeight: 800,
                 textDecoration: 'none',
                 display: 'inline-flex',

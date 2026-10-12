@@ -364,7 +364,7 @@ export default function ProductDetail() {
       addFn(product, qty, openDrawer);
       setIsAdded(true);
       setTimeout(() => setIsAdded(false), 2200);
-      toast.success(isRtl ? `تمت إضافة "${product.name}" إلى السلة 🛒` : `Added "${product.name_en || product.name}" to cart 🛒`);
+      toast.success(isRtl ? `تمت إضافة "${product.name}" إلى السلة` : `Added "${product.name_en || product.name}" to cart`);
       if (openDrawer && setOpen) {
         setOpen(true);
       }
@@ -381,7 +381,7 @@ export default function ProductDetail() {
       <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', padding: '60px 0' }}>
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 36, alignItems: 'start' }}>
-            <div className="skeleton" style={{ height: 440, borderRadius: 'var(--radius-xl)' }} />
+            <div className="skeleton" style={{ height: 440, borderRadius: 'var(--radius-sm)' }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="skeleton" style={{ height: 26, width: '35%', borderRadius: 'var(--radius-xs)' }} />
               <div className="skeleton" style={{ height: 48, width: '85%', borderRadius: 'var(--radius-sm)' }} />

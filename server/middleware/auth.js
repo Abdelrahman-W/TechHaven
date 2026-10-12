@@ -91,6 +91,30 @@ export const requireAdmin = (req, res, next) => {
 };
 
 /**
+ * Middleware: Requires authenticated user with vendor/seller or admin role
+ */
+export const requireVendor = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      error: 'يجب تسجيل الدخول أولاً',
+      code: 'UNAUTHORIZED'
+    });
+  }
+
+  const role = (req.user.role || '').toLowerCase().trim();
+  const allowedRoles = ['vendor', 'seller', 'owner', 'admin', 'store_manager'];
+
+  if (!allowedRoles.includes(role)) {
+    return res.status(403).json({
+      error: 'هذا الإجراء مخصص للتجار المعتمدين والمشرفين فقط',
+      code: 'FORBIDDEN'
+    });
+  }
+
+  next();
+};
+
+/**
  * Middleware: Requires specific granular permission (resource.action)
  */
 export const requirePermission = (permission) => {

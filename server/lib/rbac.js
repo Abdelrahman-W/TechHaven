@@ -98,6 +98,19 @@ export const PERMISSIONS = {
   ADMIN_SUPPLIERS_VIEW: 'admin.suppliers.view',
   ADMIN_PURCHASING_VIEW: 'admin.purchasing.view',
   ADMIN_REORDER_VIEW: 'admin.reorder.view',
+
+  // Multi-Vendor Marketplace (Batch 10)
+  VENDORS_VIEW: 'vendors.view',
+  VENDORS_MANAGE: 'vendors.manage',
+  VENDORS_APPROVE: 'vendors.approve',
+  VENDOR_PROFILE_VIEW: 'vendor.profile.view',
+  VENDOR_PROFILE_EDIT: 'vendor.profile.edit',
+  VENDOR_PRODUCTS_VIEW: 'vendor.products.view',
+  VENDOR_PRODUCTS_CREATE: 'vendor.products.create',
+  VENDOR_PRODUCTS_EDIT: 'vendor.products.edit',
+  VENDOR_PRODUCTS_DELETE: 'vendor.products.delete',
+  VENDOR_ORDERS_VIEW: 'vendor.orders.view',
+  VENDOR_ANALYTICS_VIEW: 'vendor.analytics.view',
 };
 
 export const ROLES = {
@@ -105,6 +118,8 @@ export const ROLES = {
   STORE_MANAGER: 'store_manager',
   INVENTORY_OFFICER: 'inventory_officer',
   FULFILLMENT_AGENT: 'fulfillment_agent',
+  VENDOR: 'vendor',
+  SELLER: 'seller',
   USER: 'user',
 };
 
@@ -136,6 +151,7 @@ export const ROLE_DEFINITIONS = [
       'users.view',
       'settings.view',
       'admin.dashboard.view', 'admin.users.view', 'admin.orders.view', 'admin.b2b.view', 'admin.reviews.view', 'admin.categories.view', 'admin.analytics.view', 'admin.reports.view', 'admin.suppliers.view', 'admin.purchasing.view', 'admin.reorder.view', 'admin.alerts.view',
+      'vendors.view', 'vendors.manage', 'vendors.approve',
     ],
   },
   {
@@ -167,6 +183,17 @@ export const ROLE_DEFINITIONS = [
     ],
   },
   {
+    code: 'vendor',
+    name: 'تاجر / بائع مستقل (Marketplace Vendor)',
+    description: 'إدارة متجر التاجر الخاص، المنتجات المعروضة، المخزون، الأسعار، ومتابعة الطلبات الخاصة به فقط',
+    is_system: true,
+    permissions: [
+      'vendor.profile.view', 'vendor.profile.edit',
+      'vendor.products.view', 'vendor.products.create', 'vendor.products.edit', 'vendor.products.delete',
+      'vendor.orders.view', 'vendor.analytics.view',
+    ],
+  },
+  {
     code: 'user',
     name: 'عميل (Customer)',
     description: 'حساب عميل عادي للتسوق والطلب ومتابعة المشتريات الشخصية',
@@ -181,6 +208,8 @@ export const ROLE_PERMISSIONS_MAP = {
   store_manager: ROLE_DEFINITIONS.find(r => r.code === 'store_manager').permissions,
   inventory_officer: ROLE_DEFINITIONS.find(r => r.code === 'inventory_officer').permissions,
   fulfillment_agent: ROLE_DEFINITIONS.find(r => r.code === 'fulfillment_agent').permissions,
+  vendor: ROLE_DEFINITIONS.find(r => r.code === 'vendor').permissions,
+  seller: ROLE_DEFINITIONS.find(r => r.code === 'vendor').permissions,
   user: [],
 };
 

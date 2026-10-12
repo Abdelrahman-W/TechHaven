@@ -156,7 +156,10 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'سلة المشتريات فارغة', code: 'EMPTY_CART' });
     }
 
-    // Pre-validate item structure and calculate tentative subtotal for shipping tier
+    // Pre-validate item structure and calculate tentative subtotal using batched product lookup (PRF-01)
+    const productIds = items.map(it => it.productId || it.product_id || it.id).filter(Boolean);
+    const productMap = await db.getProductsByIds(productIds);
+
     let tentativeSubtotal = 0;
     for (const it of items) {
       const productId = it.productId || it.product_id || it.id;
@@ -169,7 +172,7 @@ router.post('/', async (req, res, next) => {
         return res.status(400).json({ error: 'الكمية المطلوبة يجب أن تكون 1 أو أكثر', code: 'INVALID_QUANTITY' });
       }
 
-      const dbProduct = await db.getProduct(productId);
+      const dbProduct = productMap.get(productId);
       if (!dbProduct) {
         return res.status(400).json({ error: `المنتج غير موجود: ${productId}`, code: 'PRODUCT_NOT_FOUND' });
       }

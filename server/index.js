@@ -29,6 +29,7 @@ import wishlistRoutes from './routes/wishlist.js';
 import settingsRoutes from './routes/settings.js';
 import alertsRoutes from './routes/alerts.js';
 import automationRoutes from './routes/automation.js';
+import vendorRoutes from './routes/vendors.js';
 import seoRoutes from './routes/seo.js';
 import { setupPrimaryCacheIPC } from './middleware/cache.js';
 
@@ -94,23 +95,19 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
   // ── CORS Allowlist ──────────────────────────────────────
   function parseCORSOrigins() {
     const raw = process.env.CORS_ORIGINS;
+    const defaultLocalOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:4173',
+      'http://127.0.0.1:4173',
+      'http://localhost:4000',
+      'http://127.0.0.1:4000',
+    ];
     if (raw) {
-      return raw.split(',').map(o => o.trim().replace(/\/$/, ''));
+      const custom = raw.split(',').map(o => o.trim().replace(/\/$/, '')).filter(Boolean);
+      return [...new Set([...custom, ...defaultLocalOrigins])];
     }
-    // Development: default localhost origins
-    if (process.env.NODE_ENV !== 'production') {
-      return ['http://localhost:5173', 'http://127.0.0.1:5173'];
-    }
-    // Production: warn and deny all cross-origin requests
-    console.error('');
-    console.error('══════════════════════════════════════════════════════════');
-    console.error('  [CORS] PRODUCTION WARNING: CORS_ORIGINS is not set.');
-    console.error('  Cross-origin requests will be DENIED.');
-    console.error('  Set CORS_ORIGINS to your frontend domain(s):');
-    console.error('  e.g.: CORS_ORIGINS=https://your-frontend.vercel.app');
-    console.error('══════════════════════════════════════════════════════════');
-    console.error('');
-    return [];
+    return defaultLocalOrigins;
   }
 
   const corsAllowedOrigins = parseCORSOrigins();
@@ -120,18 +117,29 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
       // No Origin header → same-origin or server-to-server; allow.
       if (origin === undefined) return callback(null, true);
       // Origin: null (file:// or sandboxed iframe) → deny.
-      if (origin === 'null') return callback(new Error('Not allowed by CORS'));
+      if (origin === 'null') {
+        const err = new Error('Not allowed by CORS');
+        err.status = 403;
+        err.code = 'CORS_ERROR';
+        return callback(err);
+      }
       // Exact origin match against the allowlist.
       if (corsAllowedOrigins.includes(origin)) return callback(null, true);
       // Disallowed origin.
-      callback(new Error('Not allowed by CORS'));
+      const err = new Error('Not allowed by CORS');
+      err.status = 403;
+      err.code = 'CORS_ERROR';
+      callback(err);
     },
     credentials: true,
     exposedHeaders: ['X-Request-Id', 'X-Cache'],
   }));
   app.use(compression()); // Gzip compression
-  app.use(express.json({ type: ['application/json', 'application/csp-report'], limit: '5mb' }));
-  app.use(express.urlencoded({ extended: true }));
+  // ── JSON Body Limits (Issue DOS-01: Abuse resistance) ──────
+  app.use('/api/admin', express.json({ limit: '5mb' }));
+  app.use('/api/vendors', express.json({ limit: '5mb' }));
+  app.use(express.json({ type: ['application/json', 'application/csp-report'], limit: '100kb' }));
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
   // ── CSP Violation Reporting Endpoint ────────────────────────
   app.post('/api/security/csp-reports', cspReportHandler);
@@ -183,6 +191,7 @@ if (cluster.isPrimary && process.env.NODE_ENV === 'production') {
   app.use('/api/settings', settingsRoutes);
   app.use('/api/alerts', alertsRoutes);
   app.use('/api/automation', automationRoutes);
+  app.use('/api/vendors', vendorRoutes);
   
   // ── SEO & Public Crawlers (robots.txt, sitemap.xml) ────────
   app.use('/', seoRoutes);

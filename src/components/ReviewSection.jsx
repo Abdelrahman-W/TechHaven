@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { api } from '../lib/api';
@@ -51,7 +52,16 @@ const ReviewSection = ({ productId }) => {
         <div className="card">
           <h4>{isRtl ? 'متوسط التقييم' : 'Average Rating'}</h4>
           <div style={{ fontSize: 'var(--text-5xl)', fontWeight: 'bold', color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>4.5</div>
-          <div className="rating-stars" style={{ fontSize: '1.5rem' }}>★★★★☆</div>
+          <div className="rating-stars" style={{ display: 'flex', gap: 3, alignItems: 'center', margin: '4px 0' }}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                size={18}
+                fill={s <= 4 ? 'var(--warning, #F59E0B)' : 'transparent'}
+                color={s <= 4 ? 'var(--warning, #F59E0B)' : 'var(--text-muted, #6B7280)'}
+              />
+            ))}
+          </div>
           <p className="text-muted" style={{ marginTop: 'var(--space-2)' }}>
             {isRtl ? `بناءً على ${reviews.length || 12} تقييم` : `Based on ${reviews.length || 12} reviews`}
           </p>
@@ -123,8 +133,18 @@ const ReviewSection = ({ productId }) => {
               <div key={item.id || idx} className="card" style={{ marginBottom: 'var(--space-4)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
                   <strong>{item.user_name || item.user?.name || item.userName || (isRtl ? `مستخدم ${idx + 1}` : `User ${idx + 1}`)}</strong>
-                  <div className="rating-stars">
-                    {'★'.repeat(Math.max(1, Math.min(5, Number(item.rating) || 5)))}{'☆'.repeat(Math.max(0, 5 - (Number(item.rating) || 5)))}
+                  <div className="rating-stars" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    {[1, 2, 3, 4, 5].map((s) => {
+                      const r = Math.round(Number(item.rating) || 5);
+                      return (
+                        <Star
+                          key={s}
+                          size={14}
+                          fill={s <= r ? 'var(--warning, #F59E0B)' : 'transparent'}
+                          color={s <= r ? 'var(--warning, #F59E0B)' : 'var(--text-muted, #6B7280)'}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
                 <p>{item.comment}</p>

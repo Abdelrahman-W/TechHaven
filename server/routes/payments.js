@@ -322,20 +322,35 @@ router.post('/paymob/webhook', async (req, res) => {
 
     const orderId = data?.merchant_order_id || data?.order?.merchant_order_id || data?.order_id;
     const isSuccess = data?.success === true || data?.success === 'true';
+    const transactionId = String(data?.id || '');
+
+    if (transactionId) {
+      const txRes = await db.recordPaymobTransaction({
+        transaction_id: transactionId,
+        order_id: orderId,
+        amount_cents: data?.amount_cents,
+        currency: data?.currency,
+        status: isSuccess ? 'success' : 'failed',
+        data,
+      });
+      if (txRes.duplicate) {
+        console.log(`Paymob duplicate webhook ignored for transaction ${transactionId}`);
+        return res.json({ accepted: true, duplicate: true, transaction_id: transactionId, order_id: orderId });
+      }
+    }
 
     if (orderId && isSuccess) {
       const order = await db.getOrder(orderId);
       if (order) {
-        const transactionId = String(data?.id || 'online');
         const timeline = order.timeline || [];
         if (order.payment_status === 'paid' || timeline.some((entry) => entry.payment_transaction_id === transactionId)) {
           return res.json({ accepted: true, duplicate: true, order_id: order.id });
         }
         timeline.push({
           status: 'paid',
-          label: `تم استلام الدفع الإلكتروني بنجاح عبر Paymob (معاملة: ${data?.id || 'online'})`,
+          label: `تم استلام الدفع الإلكتروني بنجاح عبر Paymob (معاملة: ${transactionId || 'online'})`,
           time: new Date().toISOString(),
-          payment_transaction_id: transactionId,
+          payment_transaction_id: transactionId || 'online',
         });
 
         await db.updateOrder(order.id, {

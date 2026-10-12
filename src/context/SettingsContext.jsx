@@ -28,7 +28,7 @@ const DEFAULT_SETTINGS = {
   instapay_address: 'techhaven@instapay',
   maintenance_mode: false,
   announcement_active: true,
-  announcement_text: '🔥 تخفيضات كبرى على كروت الشاشة وشاشات 240Hz لفترة محدودة | شحن مجاني للطلبات فوق 2500 ج.م',
+  announcement_text: 'تخفيضات كبرى على كروت الشاشة وشاشات 240Hz لفترة محدودة | شحن مجاني للطلبات فوق 2500 ج.م',
   announcement_link: '/shop',
   // Paymob Public Client Info
   paymob_mode: 'sandbox',

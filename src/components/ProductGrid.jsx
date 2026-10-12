@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { AlertTriangle, PackageOpen } from 'lucide-react';
 import { api } from '../lib/api';
 import ProductCard from './ProductCard';
 
@@ -55,7 +56,7 @@ export default function ProductGrid({ products: initialProducts, category, searc
   if (error) {
     return (
       <div className="empty-state" style={{ color: 'var(--danger)', borderColor: 'rgba(255, 107, 107, 0.3)' }}>
-        <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '12px' }}>⚠️</span>
+        <AlertTriangle size={36} style={{ color: 'var(--danger)', marginBottom: '12px' }} />
         <h3>حدث خطأ أثناء تحميل المنتجات</h3>
         <p style={{ color: 'var(--text-secondary)' }}>{error}</p>
       </div>
@@ -65,7 +66,7 @@ export default function ProductGrid({ products: initialProducts, category, searc
   if (products.length === 0) {
     return (
       <div className="empty-state">
-        <span style={{ fontSize: '3rem', display: 'block', marginBottom: '16px' }}>📦</span>
+        <PackageOpen size={44} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
         <h3>لا توجد منتجات متوفرة حالياً</h3>
         <p style={{ color: 'var(--text-muted)' }}>جرب البحث بكلمات أخرى أو اختر فئة مختلفة من القائمة.</p>
       </div>

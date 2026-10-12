@@ -174,12 +174,12 @@ export default function AdminReviews() {
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[
-            { id: 'all', label: 'كافة النجوم' },
-            { id: '5', label: '★★★★★ 5 نجوم' },
-            { id: '4', label: '★★★★ 4 نجوم' },
-            { id: '3', label: '★★★ 3 نجوم' },
-            { id: '2', label: '★★ 2 نجوم' },
-            { id: '1', label: '★ نجمة واحدة' },
+            { id: 'all', label: 'كافة التقييمات' },
+            { id: '5', label: '5 نجوم' },
+            { id: '4', label: '4 نجوم' },
+            { id: '3', label: '3 نجوم' },
+            { id: '2', label: '2 نجوم' },
+            { id: '1', label: 'نجمة واحدة' },
           ].map((item) => (
             <button
               key={item.id}

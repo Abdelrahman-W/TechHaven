@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Building2,
   PowerOff,
+  X,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 
@@ -574,9 +575,9 @@ export default function AdminSuppliers() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', fontSize: '1.2rem', cursor: 'pointer' }}
+                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -838,9 +839,9 @@ export default function AdminSuppliers() {
               <button
                 type="button"
                 onClick={() => setSelectedSupplierDetails(null)}
-                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', fontSize: '1.2rem', cursor: 'pointer' }}
+                style={{ backgroundColor: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 

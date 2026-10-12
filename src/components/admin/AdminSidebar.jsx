@@ -58,12 +58,13 @@ export default function AdminSidebar({ isOpen, onClose }) {
             style={{
               width: '36px',
               height: '36px',
-              borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+              borderRadius: 'var(--radius-xs)',
+              background: 'var(--brand-orange-light)',
+              border: '1px solid rgba(255, 94, 20, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#fff',
+              color: 'var(--brand-orange)',
             }}
           >
             <Zap size={20} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Zap,
   Send,
@@ -15,12 +15,18 @@ import {
   Lock,
   MessageSquare,
   Sparkles,
+  Smartphone,
+  Banknote,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
 
 export default function Footer() {
-  const { t, lang, isRtl } = useLanguage();
+  const { isRtl, t, lang } = useLanguage();
+  const location = useLocation();
+  
+  // Hide repetitive promotional features strip on focused utilitarian routes (profile, orders, checkout, cart)
+  const isFocusedRoute = ['/profile', '/orders', '/checkout', '/cart', '/compare'].some(p => location.pathname.startsWith(p));
   const { settings } = useSettings();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -67,18 +73,20 @@ export default function Footer() {
   return (
     <footer className="th-footer">
       <div className="container">
-        {/* 1. Value Props Strip */}
-        <div className="th-footer-props-strip">
-          {valueProps.map((prop, idx) => (
-            <div key={idx} className="th-footer-prop-item">
-              <div className="th-footer-prop-icon">{prop.icon}</div>
-              <div>
-                <div className="th-footer-prop-title">{prop.title}</div>
-                <div className="th-footer-prop-sub">{prop.sub}</div>
+        {/* 1. Value Props Strip (Hidden on focused utilitarian & account routes) */}
+        {!isFocusedRoute && (
+          <div className="th-footer-props-strip">
+            {valueProps.map((prop, idx) => (
+              <div key={idx} className="th-footer-prop-item">
+                <div className="th-footer-prop-icon">{prop.icon}</div>
+                <div>
+                  <div className="th-footer-prop-title">{prop.title}</div>
+                  <div className="th-footer-prop-sub">{prop.sub}</div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* 2. Main 4-Column Grid */}
         <div className="th-footer-grid">
@@ -295,15 +303,16 @@ export default function Footer() {
                     <span>Meeza ميزة</span>
                   </span>
                   <span className="th-payment-badge">
-                    <span style={{ color: '#EC4899', fontWeight: 900 }}>⚡</span>
+                    <Zap size={13} style={{ color: '#EC4899' }} />
                     <span>InstaPay</span>
                   </span>
                   <span className="th-payment-badge">
-                    <span style={{ color: '#EF4444', fontWeight: 900 }}>📱</span>
+                    <Smartphone size={13} style={{ color: '#EF4444' }} />
                     <span>Vodafone Cash</span>
                   </span>
                   <span className="th-payment-badge">
-                    <span>{isRtl ? '💵 كاش عند الاستلام' : '💵 Cash on Delivery'}</span>
+                    <Banknote size={13} style={{ color: '#10B981' }} />
+                    <span>{isRtl ? 'كاش عند الاستلام' : 'Cash on Delivery'}</span>
                   </span>
                 </div>
 
@@ -336,8 +345,8 @@ export default function Footer() {
           <div style={{ display: 'flex', gap: 16, color: 'var(--text-muted)', fontSize: '0.76rem', flexWrap: 'wrap' }}>
             <span>{isRtl ? `سجل تجاري: ${settings?.commercial_reg || '409214'}` : `CR: ${settings?.commercial_reg || '409214'}`}</span>
             <span>{isRtl ? `بطاقة ضريبية: ${settings?.tax_card || '712-441-903'}` : `Tax ID: ${settings?.tax_card || '712-441-903'}`}</span>
-            <span style={{ color: 'var(--brand-orange)', fontWeight: 700 }}>
-              ⚡ {t('footer_authorized')}
+            <span style={{ color: 'var(--brand-orange)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <ShieldCheck size={13} /> {t('footer_authorized')}
             </span>
           </div>
         </div>

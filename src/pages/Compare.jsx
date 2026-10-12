@@ -62,6 +62,14 @@ export default function Compare() {
        p.brand?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const stickyColStyle = {
+    position: 'sticky',
+    [isRtl ? 'right' : 'left']: 0,
+    zIndex: 2,
+    background: 'var(--bg-secondary)',
+    boxShadow: isRtl ? '-2px 0 6px rgba(0,0,0,0.35)' : '2px 0 6px rgba(0,0,0,0.35)',
+  };
+
   return (
     <div className="page" style={{ padding: 'var(--space-8) 0 var(--space-16)', direction: isRtl ? 'rtl' : 'ltr' }}>
       <div className="container">
@@ -189,7 +197,8 @@ export default function Compare() {
             <table
               style={{
                 width: '100%',
-                borderCollapse: 'collapse',
+                borderCollapse: 'separate',
+                borderSpacing: 0,
                 textAlign: isRtl ? 'right' : 'left',
                 minWidth: '650px',
               }}
@@ -205,6 +214,7 @@ export default function Compare() {
                       background: 'var(--bg-secondary)',
                       color: 'var(--text-muted)',
                       fontSize: 'var(--text-sm)',
+                      ...stickyColStyle,
                     }}
                   >
                     {t('compare_col_product')}
@@ -270,7 +280,7 @@ export default function Compare() {
 
                 {/* Row 2: Brand */}
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)' }}>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)', ...stickyColStyle }}>
                     {t('compare_col_brand')}
                   </td>
                   {products.map((p) => (
@@ -282,7 +292,7 @@ export default function Compare() {
 
                 {/* Row 3: Category */}
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)' }}>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)', ...stickyColStyle }}>
                     {t('compare_col_category')}
                   </td>
                   {products.map((p) => (
@@ -294,7 +304,7 @@ export default function Compare() {
 
                 {/* Row 4: Stock Status */}
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)' }}>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)', ...stickyColStyle }}>
                     {t('compare_col_stock')}
                   </td>
                   {products.map((p) => (
@@ -314,7 +324,7 @@ export default function Compare() {
 
                 {/* Row 5: Warranty */}
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)' }}>
+                  <td style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--bg-secondary)', fontWeight: 600, fontSize: 'var(--text-xs)', ...stickyColStyle }}>
                     {isRtl ? 'فترة الضمان' : 'Warranty'}
                   </td>
                   {products.map((p) => (
@@ -329,7 +339,7 @@ export default function Compare() {
 
                 {/* Row 6: Add to Cart CTA */}
                 <tr>
-                  <td style={{ padding: 'var(--space-4)', background: 'var(--bg-secondary)' }}>
+                  <td style={{ padding: 'var(--space-4)', background: 'var(--bg-secondary)', ...stickyColStyle }}>
                     {t('compare_col_actions')}
                   </td>
                   {products.map((p) => (

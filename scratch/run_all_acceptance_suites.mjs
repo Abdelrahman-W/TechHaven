@@ -90,6 +90,7 @@ const suites = [
   { name: 'B2B Customer Balances (B07)', path: 'scratch/test_b2b_balances.mjs' },
   { name: 'Automation & Operational Alerts (B08)', path: 'scratch/test_automation_alerts.mjs' },
   { name: 'Reporting & Executive Analytics (B09)', path: 'scratch/test_reports_executive_analytics.mjs' },
+  { name: 'Multi-Vendor & Paymob Idempotency (B10)', path: 'scratch/test_multivendor_paymob_suite.mjs' },
 
   // P2 Hardening Suites
   { name: 'P2-SEC-01 (CSP Headers)', path: 'scratch/test_csp_headers.mjs' },
@@ -125,15 +126,21 @@ const suites = [
 async function run() {
   console.log('=== FULL PRODUCTION ACCEPTANCE SUITE EXECUTION ===\n');
 
-  // Check if server is running on 4000, if not spawn one
+  // Check if server is running on 4000, kill it if so to ensure fresh environment
   let serverProcess = null;
   const isRunning = await checkServer(4000);
-  if (!isRunning) {
-    console.log('Starting test server on port 4000...');
-    serverProcess = startServerProcess();
-    await waitForServer(4000);
-    console.log('✓ Test server ready on port 4000.\n');
+  if (isRunning) {
+    try {
+      const findOut = spawnSync('cmd.exe', ['/c', 'netstat -ano | findstr :4000 | findstr LISTENING'], { encoding: 'utf8' }).stdout || '';
+      const pids = [...new Set(findOut.split('\n').map(l => l.trim().split(/\s+/).pop()).filter(p => p && /^\d+$/.test(p)))];
+      for (const pid of pids) { spawnSync('cmd.exe', ['/c', `taskkill /F /PID ${pid}`]); }
+      await new Promise(r => setTimeout(r, 600));
+    } catch (e) {}
   }
+  console.log('Starting test server on port 4000...');
+  serverProcess = startServerProcess();
+  await waitForServer(4000);
+  console.log('✓ Test server ready on port 4000.\n');
 
   const results = [];
   let passedCount = 0;

@@ -23,6 +23,7 @@ import {
   Smartphone,
   Layers,
   ArrowLeft,
+  ArrowRight,
   Globe,
   Home,
   Briefcase,
@@ -117,6 +118,15 @@ export default function Navbar() {
   }, [searchQuery]);
 
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsUserMenuOpen(false);
+        setIsMegaMenuOpen(false);
+        setIsMoreMenuOpen(false);
+        setIsSearchFocused(false);
+        setIsMobileMenuOpen(false);
+      }
+    };
     const handleClickOutside = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setIsUserMenuOpen(false);
@@ -131,8 +141,12 @@ export default function Navbar() {
         setIsSearchFocused(false);
       }
     };
+    document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleSearchSubmit = (e) => {
@@ -152,7 +166,7 @@ export default function Navbar() {
     { name: t('nav_home', 'الرئيسية'), path: '/' },
     { name: t('nav_categories', 'تصفح الأقسام'), isMegaToggle: true },
     { name: t('nav_shop', 'المتجر'), path: '/shop' },
-    { name: t('nav_pc_builder', 'بناء جهازك'), path: '/pc-builder', badge: '🔥' },
+    { name: t('nav_pc_builder', 'بناء جهازك'), path: '/pc-builder' },
     { name: t('nav_deals', 'العروض'), path: '/shop?featured=true' },
     { name: t('nav_b2b', 'قسم الشركات'), path: '/b2b' },
   ];
@@ -346,15 +360,15 @@ export default function Navbar() {
               <span
                 style={{
                   fontSize: '0.66rem',
-                  background: 'rgba(255, 107, 53, 0.2)',
-                  border: '1px solid rgba(255, 107, 53, 0.4)',
-                  color: '#FF6B35',
+                  background: 'rgba(255, 94, 20, 0.15)',
+                  border: '1px solid rgba(255, 94, 20, 0.35)',
+                  color: 'var(--brand-orange)',
                   padding: '1px 5px',
-                  borderRadius: 4,
+                  borderRadius: 'var(--radius-xs)',
                   fontWeight: 800,
                 }}
               >
-                🔥
+                PRO
               </span>
             </Link>
 
@@ -409,8 +423,8 @@ export default function Navbar() {
                   }}
                 >
                   {[
-                    { name: t('nav_deals', 'العروض'), path: '/shop?featured=true', badge: '🏷️' },
-                    { name: t('nav_b2b', 'قسم الشركات'), path: '/b2b', badge: '🏢' },
+                    { name: t('nav_deals', 'العروض'), path: '/shop?featured=true' },
+                    { name: t('nav_b2b', 'قسم الشركات'), path: '/b2b' },
                   ].map((item) => (
                     <Link
                       key={item.path}
@@ -524,7 +538,8 @@ export default function Navbar() {
                         cursor: 'pointer'
                       }}
                     >
-                      {isRtl ? `عرض كل نتائج البحث لـ "${searchQuery}" ➔` : `View all results for "${searchQuery}" ➔`}
+                      {isRtl ? `عرض كل نتائج البحث لـ "${searchQuery}"` : `View all results for "${searchQuery}"`}
+                    {isRtl ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}
                     </div>
                   </div>
                 ) : (
@@ -850,7 +865,7 @@ export default function Navbar() {
                   <span className="th-drawer-item-label">{t('nav_pc_builder', 'بناء جهازك')}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="th-drawer-badge">🔥</span>
+                  <span className="th-drawer-badge" style={{ fontSize: '0.68rem', padding: '1px 6px', borderRadius: 'var(--radius-xs)', background: 'rgba(255, 94, 20, 0.15)', color: 'var(--brand-orange)', border: '1px solid rgba(255, 94, 20, 0.3)' }}>PRO</span>
                   {location.pathname === '/pc-builder' && <span className="th-drawer-dot" />}
                 </div>
               </Link>

@@ -20,21 +20,22 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
-  Check
+  Check,
+  BarChart3
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const SLOTS = [
-  { id: 'cpu', catId: 'cat-cpu', nameAr: 'المعالج (Processor)', nameEn: 'Processor (CPU)', icon: '⚙️', estWatt: 160 },
-  { id: 'motherboard', catId: 'cat-motherboard', nameAr: 'اللوحة الأم (Motherboard)', nameEn: 'Motherboard', icon: '🧩', estWatt: 60 },
-  { id: 'gpu', catId: 'cat-gpu', nameAr: 'كارت الشاشة (Graphics Card)', nameEn: 'Graphics Card (GPU)', icon: '🎮', estWatt: 320 },
-  { id: 'ram', catId: 'cat-ram', nameAr: 'الذاكرة العشوائية (RAM)', nameEn: 'Memory (RAM)', icon: '⚡', estWatt: 30 },
-  { id: 'storage', catId: 'cat-storage', nameAr: 'وحدات التخزين (SSD NVMe)', nameEn: 'Storage (SSD NVMe)', icon: '💾', estWatt: 15 },
-  { id: 'cooling', catId: 'cat-cooling', nameAr: 'أنظمة التبريد (CPU Cooler)', nameEn: 'Cooling (CPU Cooler)', icon: '❄️', estWatt: 35 },
-  { id: 'psu', catId: 'cat-psu', nameAr: 'مزود الطاقة (Power Supply)', nameEn: 'Power Supply (PSU)', icon: '🔌', estWatt: 0 },
-  { id: 'case', catId: 'cat-case', nameAr: 'صندوق الحاسوب (PC Case)', nameEn: 'Chassis / Case', icon: '🖥️', estWatt: 10 },
+  { id: 'cpu', catId: 'cat-cpu', nameAr: 'المعالج (Processor)', nameEn: 'Processor (CPU)', Icon: Cpu, estWatt: 160 },
+  { id: 'motherboard', catId: 'cat-motherboard', nameAr: 'اللوحة الأم (Motherboard)', nameEn: 'Motherboard', Icon: Layers, estWatt: 60 },
+  { id: 'gpu', catId: 'cat-gpu', nameAr: 'كارت الشاشة (Graphics Card)', nameEn: 'Graphics Card (GPU)', Icon: Monitor, estWatt: 320 },
+  { id: 'ram', catId: 'cat-ram', nameAr: 'الذاكرة العشوائية (RAM)', nameEn: 'Memory (RAM)', Icon: Zap, estWatt: 30 },
+  { id: 'storage', catId: 'cat-storage', nameAr: 'وحدات التخزين (SSD NVMe)', nameEn: 'Storage (SSD NVMe)', Icon: HardDrive, estWatt: 15 },
+  { id: 'cooling', catId: 'cat-cooling', nameAr: 'أنظمة التبريد (CPU Cooler)', nameEn: 'Cooling (CPU Cooler)', Icon: Fan, estWatt: 35 },
+  { id: 'psu', catId: 'cat-psu', nameAr: 'مزود الطاقة (Power Supply)', nameEn: 'Power Supply (PSU)', Icon: Zap, estWatt: 0 },
+  { id: 'case', catId: 'cat-case', nameAr: 'صندوق الحاسوب (PC Case)', nameEn: 'Chassis / Case', Icon: Box, estWatt: 10 },
 ];
 
 // Fallback high-tier hardware catalog
@@ -442,7 +443,7 @@ export default function PCBuilder() {
       [slotId]: product,
     }));
     setActiveSlotId(null);
-    toast.success(isRtl ? `تم اختيار: ${product.name} ✓` : `Selected: ${product.name} ✓`);
+    toast.success(isRtl ? `تم اختيار: ${product.name}` : `Selected: ${product.name}`);
   };
 
   const handleRemovePart = (slotId) => {
@@ -535,7 +536,7 @@ export default function PCBuilder() {
         psu: FALLBACK_HARDWARE.psu[0],
         case: FALLBACK_HARDWARE.case[0]
       });
-      toast.success(isRtl ? 'تم تحميل تجميعة 4K Ultra Gaming الخارقة بنجاح 🚀' : 'Loaded 4K Ultra Gaming build preset 🚀');
+      toast.success(isRtl ? 'تم تحميل تجميعة 4K Ultra Gaming بنجاح' : 'Loaded 4K Ultra Gaming build preset');
     } else if (presetType === 'esports') {
       setSelectedParts({
         cpu: FALLBACK_HARDWARE.cpu[1],
@@ -547,7 +548,7 @@ export default function PCBuilder() {
         psu: FALLBACK_HARDWARE.psu[1],
         case: FALLBACK_HARDWARE.case[1]
       });
-      toast.success(isRtl ? 'تم تحميل تجميعة Pro Esports 2K المتوازنة بنجاح ⚡' : 'Loaded Pro Esports 2K build preset ⚡');
+      toast.success(isRtl ? 'تم تحميل تجميعة Pro Esports 2K المتوازنة بنجاح' : 'Loaded Pro Esports 2K build preset');
     } else if (presetType === 'budget') {
       setSelectedParts({
         cpu: FALLBACK_HARDWARE.cpu[3],
@@ -559,7 +560,7 @@ export default function PCBuilder() {
         psu: FALLBACK_HARDWARE.psu[2],
         case: FALLBACK_HARDWARE.case[2]
       });
-      toast.success(isRtl ? 'تم تحميل تجميعة Smart Value 1080p الاقتصادية بنجاح 💡' : 'Loaded Smart Value 1080p build preset 💡');
+      toast.success(isRtl ? 'تم تحميل تجميعة Smart Value 1080p الاقتصادية بنجاح' : 'Loaded Smart Value 1080p build preset');
     }
   };
 
@@ -582,8 +583,8 @@ export default function PCBuilder() {
 
     toast.success(
       isRtl
-        ? `تمت إضافة التجميعة كاملة (${partsArray.length} قطع) إلى عربة التسوق بنجاح! ✓`
-        : `Added complete build (${partsArray.length} components) to cart ✓`
+        ? `تمت إضافة التجميعة كاملة (${partsArray.length} قطع) إلى عربة التسوق بنجاح!`
+        : `Added complete build (${partsArray.length} components) to cart`
     );
     setOpen(true);
   };
@@ -598,86 +599,85 @@ export default function PCBuilder() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(255, 94, 20, 0.12)',
+              background: 'var(--bg-tertiary)',
               color: 'var(--brand-orange)',
-              fontSize: '0.82rem',
+              fontSize: 'var(--text-xs)',
               fontWeight: 800,
-              padding: '6px 16px',
-              borderRadius: '99px',
+              padding: '4px 12px',
+              borderRadius: 'var(--radius-xs)',
               marginBottom: '14px',
-              border: '1px solid rgba(255, 94, 20, 0.25)',
+              border: '1px solid var(--border-default)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
             }}
           >
-            <Sparkles size={15} />
-            <span>TechHaven Custom PC Studio</span>
+            <Sparkles size={14} />
+            <span>TechHaven PC Compatibility Workbench</span>
           </div>
-          <h1 style={{ fontSize: '2.4rem', fontWeight: 900, color: '#fff', marginBottom: '12px' }}>
-            {isRtl ? 'مُجمّع الحواسيب الاحترافي الذكي' : 'Smart Custom PC Builder Studio'}
+          <h1 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
+            {isRtl ? 'مُجمّع الحواسيب الاحترافي الهندسي' : 'Engineered Custom PC Builder'}
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.98rem', lineHeight: 1.6, margin: '0 0 24px' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', lineHeight: 1.6, margin: '0 0 24px', maxWidth: '640px', marginInline: 'auto' }}>
             {isRtl
-              ? 'اختر مكونات جهازك خطوة بخطوة مع فحص فوري للتوافق وقوائم منسدلة ذكية تحت كل قسم، مع حساب استهلاك الطاقة وإمكانية طلب التجميعة بنقرة واحدة.'
-              : 'Assemble your dream PC step by step with real-time component filtering, inline selection drawers, TDP calculation, and one-click checkout.'}
+              ? 'اختر قطع تجميعتك مع فحص آلي وتلقائي لتوافق المقبس واللوحة الأم، حساب إجمالي استهلاك الطاقة (TDP)، وترحيل كافة القطع بطلب فوري موحد.'
+              : 'Configure your custom build with real-time socket matching, DDR memory topology checks, PSU headroom calculation, and atomic multi-component checkout.'}
           </p>
 
-          {/* Quick Preset Buttons */}
+          {/* Engineering Build Presets */}
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => loadPreset('ultra')}
               className="btn btn-sm btn-apple-tactile"
               style={{
-                background: 'rgba(255, 94, 20, 0.15)',
+                background: 'var(--bg-card)',
                 border: '1px solid var(--brand-orange)',
-                color: '#fff',
-                fontSize: '0.82rem',
+                color: 'var(--brand-orange)',
+                fontSize: 'var(--text-xs)',
                 fontWeight: 800,
-                padding: '8px 14px',
-                borderRadius: '10px',
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-xs)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6
               }}
             >
-              <span>🚀</span>
-              <span>{isRtl ? 'تجميعة 4K Ultra Gaming' : '4K Ultra Gaming Preset'}</span>
+              <span>{isRtl ? 'تجميعة 4K Ultra Workstation' : '4K Ultra Workstation (RTX 4090)'}</span>
             </button>
             <button
               onClick={() => loadPreset('esports')}
               className="btn btn-sm btn-apple-tactile"
               style={{
-                background: 'rgba(0, 212, 170, 0.12)',
-                border: '1px solid var(--secondary)',
-                color: '#fff',
-                fontSize: '0.82rem',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)',
+                color: 'var(--text-primary)',
+                fontSize: 'var(--text-xs)',
                 fontWeight: 800,
-                padding: '8px 14px',
-                borderRadius: '10px',
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-xs)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6
               }}
             >
-              <span>⚡</span>
-              <span>{isRtl ? 'تجميعة 2K Pro Esports' : '2K Pro Esports Preset'}</span>
+              <span>{isRtl ? 'تجميعة 2K Pro Esports (Ryzen 7)' : '2K Pro Esports (Ryzen 7)'}</span>
             </button>
             <button
               onClick={() => loadPreset('budget')}
               className="btn btn-sm btn-apple-tactile"
               style={{
-                background: 'rgba(108, 99, 255, 0.12)',
-                border: '1px solid var(--primary)',
-                color: '#fff',
-                fontSize: '0.82rem',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)',
+                color: 'var(--text-secondary)',
+                fontSize: 'var(--text-xs)',
                 fontWeight: 800,
-                padding: '8px 14px',
-                borderRadius: '10px',
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-xs)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6
               }}
             >
-              <span>💡</span>
-              <span>{isRtl ? 'تجميعة 1080p Smart Value' : '1080p Smart Value Preset'}</span>
+              <span>{isRtl ? 'تجميعة 1080p Smart Value (Core i5)' : '1080p Smart Value (Core i5)'}</span>
             </button>
           </div>
         </div>
@@ -754,7 +754,7 @@ export default function PCBuilder() {
                             }}
                           />
                         ) : (
-                          <span style={{ fontSize: '1.4rem' }}>{slot.icon}</span>
+                          <slot.Icon size={20} style={{ color: selected ? 'var(--brand-orange)' : '#9CA3AF' }} />
                         )}
                       </div>
 
@@ -802,7 +802,7 @@ export default function PCBuilder() {
                           }}
                           title={isRtl ? 'إزالة' : 'Remove'}
                         >
-                          ✕
+                          <X size={14} />
                         </button>
                       )}
 
@@ -926,7 +926,7 @@ export default function PCBuilder() {
                             onClick={() => setActiveSlotId(null)}
                             style={{ padding: '6px 10px', fontSize: '0.78rem', color: '#9CA3AF' }}
                           >
-                            {isRtl ? 'إغلاق ✕' : 'Close ✕'}
+                            {isRtl ? 'إغلاق' : 'Close'}
                           </button>
                         </div>
                       </div>
@@ -1046,12 +1046,12 @@ export default function PCBuilder() {
                                         {isRtl ? p.name : (p.name_en || p.name)}
                                       </strong>
                                       {isComp ? (
-                                        <span style={{ fontSize: '0.68rem', color: '#10B981', background: 'rgba(16, 185, 129, 0.12)', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
-                                          ✓ {isRtl ? 'متوافق 100%' : 'Compatible'}
+                                        <span style={{ fontSize: '0.68rem', color: '#10B981', background: 'rgba(16, 185, 129, 0.12)', padding: '1px 6px', borderRadius: 'var(--radius-xs)', fontWeight: 800 }}>
+                                          {isRtl ? 'متوافق 100%' : 'Compatible'}
                                         </span>
                                       ) : (
-                                        <span style={{ fontSize: '0.68rem', color: '#EF4444', background: 'rgba(239, 68, 68, 0.12)', padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
-                                          ✕ {p.reason || (isRtl ? 'غير متوافق' : 'Incompatible')}
+                                        <span style={{ fontSize: '0.68rem', color: '#EF4444', background: 'rgba(239, 68, 68, 0.12)', padding: '1px 6px', borderRadius: 'var(--radius-xs)', fontWeight: 800 }}>
+                                          {p.reason || (isRtl ? 'غير متوافق' : 'Incompatible')}
                                         </span>
                                       )}
                                     </div>
@@ -1105,7 +1105,7 @@ export default function PCBuilder() {
                                         cursor: isComp ? 'pointer' : 'not-allowed',
                                       }}
                                     >
-                                      {isRtl ? 'اختيار ✓' : 'Select ✓'}
+                                      {isRtl ? 'اختيار' : 'Select'}
                                     </button>
                                   )}
                                 </div>
@@ -1134,7 +1134,7 @@ export default function PCBuilder() {
             }}
           >
             <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>📊</span>
+              <BarChart3 size={20} style={{ color: 'var(--brand-orange)' }} />
               <span>{isRtl ? 'ملخص التجميعة' : 'Build Summary'}</span>
             </h3>
 
@@ -1200,7 +1200,7 @@ export default function PCBuilder() {
                 }}
               >
                 <CheckCircle2 size={16} />
-                <span>{isRtl ? '✓ جميع المكونات المختارة متوافقة 100%' : '✓ All selected components are 100% compatible'}</span>
+                <span>{isRtl ? 'جميع المكونات المختارة متوافقة 100%' : 'All selected components are 100% compatible'}</span>
               </div>
             ) : null}
 
@@ -1237,11 +1237,11 @@ export default function PCBuilder() {
             </div>
 
             {/* Guarantees */}
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' }}>
-              <div>{isRtl ? '✓ تجميع واختبار وتحديث BIOS مجاناً' : '✓ Free professional assembly, testing & BIOS flash'}</div>
-              <div>{isRtl ? '✓ كابلات مرتبة ومغلفة احترافياً (Cable Management)' : '✓ Professional clean cable management'}</div>
-              <div>{isRtl ? '✓ ضمان شامل 3 سنوات على كل قطعة معتمد' : '✓ 3-Year official certified component warranty'}</div>
-            </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Check size={14} style={{ color: '#10B981' }} /><span>{isRtl ? 'تجميع واختبار وتحديث BIOS مجاناً' : 'Free professional assembly, testing & BIOS flash'}</span></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Check size={14} style={{ color: '#10B981' }} /><span>{isRtl ? 'كابلات مرتبة ومغلفة احترافياً (Cable Management)' : 'Professional clean cable management'}</span></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Check size={14} style={{ color: '#10B981' }} /><span>{isRtl ? 'ضمان شامل 3 سنوات على كل قطعة معتمد' : '3-Year official certified component warranty'}</span></div>
+              </div>
 
             {/* CTA Buttons */}
             <button
@@ -1265,6 +1265,49 @@ export default function PCBuilder() {
             )}
           </div>
         </div>
+
+        {/* ── Mobile Sticky Build Summary Bar ──────────────────── */}
+        {Object.keys(selectedParts).length > 0 && (
+          <div className="th-mobile-sticky-bar th-pcbuilder-mobile-bar">
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 700 }}>
+                  {Object.keys(selectedParts).length}/8 {isRtl ? 'قطع مختارة' : 'Parts'}
+                </span>
+                {globalCompatibility.issues.length === 0 ? (
+                  <span style={{ fontSize: '0.65rem', color: '#10B981', background: 'rgba(16, 185, 129, 0.12)', padding: '1px 5px', borderRadius: 4, fontWeight: 800 }}>
+                    {isRtl ? 'متوافق 100%' : 'Compatible'}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.65rem', color: '#EF4444', background: 'rgba(239, 68, 68, 0.12)', padding: '1px 5px', borderRadius: 4, fontWeight: 800 }}>
+                    {isRtl ? 'تنبيه توافق' : 'Alert'}
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--brand-orange)', marginTop: 1 }}>
+                {totalPrice.toLocaleString(isRtl ? 'ar-EG' : 'en-US')} <span style={{ fontSize: '0.72rem' }}>{t('currency')}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary btn-sm btn-apple-tactile"
+              onClick={handleAddAllToCart}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <ShoppingBag size={15} />
+              <span>{isRtl ? 'إضافة للسلة' : 'Add to Cart'}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

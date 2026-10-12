@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ShieldCheck, Eye, EyeOff, AlertCircle, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -45,7 +46,9 @@ export default function Login() {
         <div className="th-auth-banner">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <span style={{ fontSize: '1.8rem' }}>⚡</span>
+              <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-xs)', background: 'rgba(255, 94, 20, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-orange)' }}>
+                <ShieldCheck size={20} />
+              </div>
               <span style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>
                 Tech<span style={{ color: 'var(--brand-orange)' }}>Haven</span>
               </span>
@@ -74,15 +77,15 @@ export default function Login() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: '#10B981', fontWeight: 900 }}>✓</span>
+              <Check size={14} style={{ color: '#10B981', flexShrink: 0 }} />
               <span>{t('auth_security_1')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: 'var(--brand-orange)', fontWeight: 900 }}>✓</span>
+              <Check size={14} style={{ color: 'var(--brand-orange)', flexShrink: 0 }} />
               <span>{t('auth_security_2')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: '#38BDF8', fontWeight: 900 }}>✓</span>
+              <Check size={14} style={{ color: '#38BDF8', flexShrink: 0 }} />
               <span>{t('auth_security_3')}</span>
             </div>
           </div>
@@ -91,7 +94,7 @@ export default function Login() {
         {/* Right Side: Form */}
         <div className="th-auth-form-wrap">
           <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: '6px' }}>
-            {t('nav_login')}
+            {t('auth_welcome_back')}
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
             {isRtl ? 'أدخل بريدك الإلكتروني وكلمة المرور للمتابعة' : 'Enter your email address and password to continue'}
@@ -100,16 +103,20 @@ export default function Login() {
           {error && (
             <div
               style={{
-                background: 'rgba(255, 107, 107, 0.15)',
-                border: '1px solid var(--danger)',
+                background: 'rgba(255, 107, 107, 0.12)',
+                border: '1px solid rgba(255, 107, 107, 0.35)',
                 color: '#FF6B6B',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: 'var(--radius-sm)',
                 padding: '10px 14px',
                 fontSize: '0.85rem',
                 marginBottom: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
-              ⚠️ {error}
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{error}</span>
             </div>
           )}
 
@@ -181,7 +188,7 @@ export default function Login() {
                   }}
                   aria-label={showPassword ? t('auth_hide_pass') : t('auth_show_pass')}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>

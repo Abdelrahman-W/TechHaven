@@ -236,7 +236,7 @@ export default function Checkout() {
                     style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontWeight: 800 }}
                   >
                     <CreditCard size={18} />
-                    <span>{isRtl ? 'إتمام الدفع عبر بوابة Paymob 💳' : 'Complete Payment via Paymob 💳'}</span>
+                    <span>{isRtl ? 'إتمام الدفع عبر بوابة Paymob' : 'Complete Payment via Paymob'}</span>
                   </a>
                   <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: 6, fontSize: '0.74rem' }}>
                     {isRtl ? 'سيتم فتح نافذة آمنة ومعتمدة من البنك المركزي لإتمام الدفع.' : 'A secure PCI-DSS compliant checkout window will open.'}

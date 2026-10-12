@@ -83,7 +83,7 @@ export default function ProductCard({ product }) {
     if (addFn) {
       addFn(product, 1, false);
       setIsAdded(true);
-      toast.success(isRtl ? `تمت إضافة "${product.name}" إلى السلة 🛒` : `Added "${product.name_en || product.name}" to cart 🛒`);
+      toast.success(isRtl ? `تمت إضافة "${product.name}" إلى السلة` : `Added "${product.name_en || product.name}" to cart`);
       setTimeout(() => setIsAdded(false), 1800);
     }
   };
@@ -250,20 +250,23 @@ export default function ProductCard({ product }) {
             )}
           </div>
 
-          {/* Orange Stars Rating */}
+          {/* Technical Spec & Authenticity / Rating Row */}
           <div className="th-card-stars-row">
-            <div style={{ display: 'flex', gap: 2 }}>
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={13}
-                  className="th-star-icon"
-                  fill="#FF5E14"
-                  stroke="#FF5E14"
-                />
-              ))}
-            </div>
-            <span className="th-rating-reviews">{rating > 0 ? `(${rating})` : (isRtl ? 'لا توجد تقييمات' : 'No reviews')}</span>
+            {rating > 0 ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <Star size={12} className="th-star-icon" fill="#FF5E14" stroke="#FF5E14" />
+                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                    {rating.toFixed(1)}
+                  </span>
+                </div>
+                <span className="th-rating-reviews">{product.review_count ? `(${product.review_count})` : ''}</span>
+              </>
+            ) : (
+              <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', fontWeight: 600 }}>
+                {isRtl ? 'ضمان محلي معتمد' : 'Authorized Warranty'}
+              </span>
+            )}
           </div>
 
           {/* Action Row: Orange ADD TO CART + Quick View Modal Trigger */}
@@ -276,7 +279,7 @@ export default function ProductCard({ product }) {
               {isAdded ? (
                 <>
                   <Check size={14} />
-                  <span>{isRtl ? 'تمت الإضافة ✓' : 'Added ✓'}</span>
+                  <span>{isRtl ? 'تمت الإضافة' : 'Added'}</span>
                 </>
               ) : (
                 <>

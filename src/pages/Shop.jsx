@@ -5,6 +5,7 @@ import {
   Grid,
   List,
   Search,
+  Check,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import ProductCard from '../components/ProductCard';
@@ -103,7 +104,7 @@ export default function Shop() {
       {!isMobile && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff' }}>
-            {t('shop_filter_title', 'فلاتر البحث')} 🔍
+            {t('shop_filter_title', 'فلاتر البحث')}
           </span>
           <button
             onClick={() => {
@@ -114,7 +115,7 @@ export default function Shop() {
               setSearchParams({});
             }}
             className="btn btn-ghost"
-            style={{ fontSize: '0.75rem', color: 'var(--brand-orange, #6C63FF)', padding: 0 }}
+            style={{ fontSize: '0.75rem', color: 'var(--brand-orange)', padding: 0 }}
           >
             {t('shop_reset_filters', 'إعادة ضبط')}
           </button>
@@ -145,10 +146,10 @@ export default function Shop() {
                 style={{
                   textAlign: isRtl ? 'right' : 'left',
                   padding: '7px 10px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: isSelected ? 'linear-gradient(135deg, #6C63FF, #554FDE)' : 'transparent',
-                  color: isSelected ? '#fff' : 'var(--text-secondary)',
+                  borderRadius: 'var(--radius-xs)',
+                  border: isSelected ? '1px solid var(--brand-orange)' : '1px solid transparent',
+                  background: isSelected ? 'var(--bg-tertiary)' : 'transparent',
+                  color: isSelected ? 'var(--brand-orange)' : 'var(--text-secondary)',
                   fontWeight: isSelected ? 800 : 500,
                   fontSize: '0.84rem',
                   cursor: 'pointer',
@@ -270,7 +271,7 @@ export default function Shop() {
             {t('nav_home')}
           </Link>
           <span>/</span>
-          <span style={{ color: 'var(--brand-orange, #6C63FF)', fontWeight: 700 }}>
+          <span style={{ color: 'var(--brand-orange)', fontWeight: 700 }}>
             {t('nav_shop')}
           </span>
         </div>
@@ -319,7 +320,7 @@ export default function Shop() {
                     ? `عرض النتائج (${products.length})`
                     : `Show Results (${products.length})`}
                 </span>
-                <span>✓</span>
+                <Check size={14} />
               </button>
             }
             contentStyle={{ padding: '16px 14px' }}
@@ -405,15 +406,36 @@ export default function Shop() {
                 ))}
               </div>
             ) : products.length === 0 ? (
-              <div className="empty-state">
-                <Search size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 14px' }} />
-                <h3 style={{ color: '#fff', marginBottom: '8px' }}>{t('shop_no_products')}</h3>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '18px' }}>
-                  {t('shop_no_products_sub')}
+              <div className="empty-state" style={{ padding: '48px 24px', textAlign: 'center' }}>
+                <Search size={44} style={{ color: 'var(--text-muted)', margin: '0 auto 14px' }} />
+                <h3 style={{ color: '#fff', marginBottom: '8px', fontSize: '1.2rem', fontWeight: 800 }}>
+                  {categoryParam
+                    ? (isRtl ? 'لا توجد منتجات متوفرة حالياً في هذا القسم' : 'No Products Currently Available in this Category')
+                    : t('shop_no_products', 'لا توجد منتجات مطابقة')}
+                </h3>
+                <p style={{ color: 'var(--text-muted)', maxWidth: 520, margin: '0 auto 20px', lineHeight: 1.6, fontSize: '0.88rem' }}>
+                  {categoryParam
+                    ? (isRtl ? 'القسم المطلوب غير متوفر في الكتالوج الحالي أو نفدت كمياته مؤقتاً. يمكنك استعراض جميع المنتجات المتوفرة في المتجر.' : 'The requested category is currently out of stock. You can browse all available hardware in the catalog.')
+                    : t('shop_no_products_sub', 'جرّب تغيير فلاتر البحث أو تصفح الأقسام الأخرى')}
                 </p>
-                <button onClick={() => setSearchParams({})} className="btn btn-primary">
-                  {t('shop_reset_filters')}
-                </button>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button onClick={() => setSearchParams({})} className="btn btn-primary btn-apple-tactile" style={{ padding: '10px 22px' }}>
+                    {isRtl ? 'عرض جميع المنتجات المتاحة' : 'View All Available Products'}
+                  </button>
+                  {categoryParam && (
+                    <button
+                      onClick={() => {
+                        const next = new URLSearchParams(searchParams);
+                        next.delete('category');
+                        setSearchParams(next);
+                      }}
+                      className="btn btn-secondary btn-apple-tactile"
+                      style={{ padding: '10px 18px' }}
+                    >
+                      {isRtl ? 'إلغاء فلتر القسم' : 'Clear Category Filter'}
+                    </button>
+                  )}
+                </div>
               </div>
             ) : viewMode === 'grid' ? (
               <div className="product-grid">

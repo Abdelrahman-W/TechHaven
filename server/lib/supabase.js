@@ -1174,6 +1174,26 @@ export const db = {
     return this.getProduct(id);
   },
 
+  // Batch product lookup (resolving PRF-01)
+  async getProductsByIds(ids = []) {
+    if (!Array.isArray(ids) || ids.length === 0) return new Map();
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    const map = new Map();
+    if (!supabaseUrl) {
+      for (const id of uniqueIds) {
+        const product = localStore.get(`product:${id}`);
+        if (product) map.set(id, product);
+      }
+      return map;
+    }
+    const { data, error } = await supabase.from('products').select('*').in('id', uniqueIds);
+    if (error) throw error;
+    for (const p of (data || [])) {
+      map.set(p.id, p);
+    }
+    return map;
+  },
+
   async createProduct(product) {
     const record = {
       ...product,
@@ -1640,12 +1660,32 @@ export const db = {
       const itemTotal = authPrice * qty;
       calculatedSubtotal += itemTotal;
 
+      // Attribute to Marketplace Vendor if product belongs to one
+      const vendorId = product.vendor_id || product.seller_id || null;
+      let vendorName = null;
+      let vendorCommissionRate = 0;
+      let vendorCommissionAmount = 0;
+      let vendorPayoutAmount = itemTotal;
+
+      if (vendorId) {
+        const vendor = localStore.get(`vendor:${vendorId}`);
+        vendorName = vendor?.company_name || 'Marketplace Vendor';
+        vendorCommissionRate = Number(vendor?.commission_rate ?? 10.0);
+        vendorCommissionAmount = Number(((itemTotal * vendorCommissionRate) / 100).toFixed(2));
+        vendorPayoutAmount = Number((itemTotal - vendorCommissionAmount).toFixed(2));
+      }
+
       validatedItems.push({
         id: it.id || `item-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
         product_id: pId,
         product_name: product.name,
         product_sku: product.sku || pId,
         product_image: product.thumbnail || product.images?.[0] || null,
+        vendor_id: vendorId,
+        vendor_name: vendorName,
+        commission_rate: vendorCommissionRate,
+        commission_amount: vendorCommissionAmount,
+        payout_amount: vendorPayoutAmount,
         quantity: qty,
         unit_price: authPrice,
         unit_cost: authCost,
@@ -3493,5 +3533,295 @@ export const db = {
     localStore.set(`run:${id}`, updated);
     saveStoreToDisk();
     return updated;
+  },
+
+  // ── Multi-Vendor Marketplace Operations (Batch 10) ──
+  async createVendor(vendorData) {
+    const id = vendorData.id || `vendor-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const record = {
+      id,
+      user_id: vendorData.user_id,
+      company_name: vendorData.company_name,
+      company_name_en: vendorData.company_name_en || vendorData.company_name,
+      tax_number: vendorData.tax_number || '',
+      commercial_register: vendorData.commercial_register || '',
+      phone: vendorData.phone || '',
+      email: vendorData.email || '',
+      city: vendorData.city || '',
+      address: vendorData.address || '',
+      description: vendorData.description || '',
+      logo_url: vendorData.logo_url || null,
+      banner_url: vendorData.banner_url || null,
+      rating: 0,
+      total_sales: 0,
+      is_verified: false,
+      is_active: true,
+      status: vendorData.status || 'pending',
+      commission_rate: Number(vendorData.commission_rate ?? 10.0),
+      bank_account: vendorData.bank_account || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.from('sellers').insert(record).select().single();
+      if (error) throw error;
+      return data;
+    }
+
+    localStore.set(`vendor:${record.id}`, record);
+    localStore.set(`vendor_user:${record.user_id}`, record.id);
+    saveStoreToDisk();
+    return record;
+  },
+
+  async getVendor(id) {
+    if (!id) return null;
+    if (!supabaseUrl) {
+      return localStore.get(`vendor:${id}`) || null;
+    }
+    const { data, error } = await supabase.from('sellers').select('*').eq('id', id).single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || null;
+  },
+
+  async getVendorByUserId(userId) {
+    if (!userId) return null;
+    if (!supabaseUrl) {
+      const vendorId = localStore.get(`vendor_user:${userId}`);
+      if (vendorId) return localStore.get(`vendor:${vendorId}`) || null;
+      for (const [k, v] of localStore.entries()) {
+        if (k.startsWith('vendor:') && v.user_id === userId) {
+          return v;
+        }
+      }
+      return null;
+    }
+    const { data, error } = await supabase.from('sellers').select('*').eq('user_id', userId).maybeSingle();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || null;
+  },
+
+  async updateVendor(id, updates) {
+    if (!id) return null;
+    const cleanUpdates = { ...updates, updated_at: new Date().toISOString() };
+    if (!supabaseUrl) {
+      const existing = localStore.get(`vendor:${id}`);
+      if (!existing) return null;
+      const updated = { ...existing, ...cleanUpdates };
+      localStore.set(`vendor:${id}`, updated);
+      saveStoreToDisk();
+      return updated;
+    }
+    const { data, error } = await supabase.from('sellers').update(cleanUpdates).eq('id', id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async listVendors(options = {}) {
+    const { status, search, page = 1, limit = 20 } = options;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+
+    if (!supabaseUrl) {
+      let list = [];
+      for (const [k, v] of localStore.entries()) {
+        if (k.startsWith('vendor:')) list.push(v);
+      }
+      if (status && status !== 'all') {
+        list = list.filter(v => v.status === status);
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        list = list.filter(v => 
+          (v.company_name && v.company_name.toLowerCase().includes(q)) ||
+          (v.email && v.email.toLowerCase().includes(q)) ||
+          (v.phone && v.phone.includes(q))
+        );
+      }
+      list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      const total = list.length;
+      const pages = Math.ceil(total / limitNum) || 1;
+      const offset = (pageNum - 1) * limitNum;
+      const paginated = list.slice(offset, offset + limitNum);
+      return { data: paginated, pagination: { total, page: pageNum, limit: limitNum, totalPages: pages } };
+    }
+
+    let query = supabase.from('sellers').select('*', { count: 'exact' });
+    if (status && status !== 'all') query = query.eq('status', status);
+    if (search) query = query.or(`company_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+    const offset = (pageNum - 1) * limitNum;
+    query = query.range(offset, offset + limitNum - 1).order('created_at', { ascending: false });
+    const { data, count, error } = await query;
+    if (error) throw error;
+    return { data: data || [], pagination: { total: count || 0, page: pageNum, limit: limitNum, totalPages: Math.ceil((count || 0) / limitNum) || 1 } };
+  },
+
+  async getVendorProducts(vendorId, options = {}) {
+    const { search, category, page = 1, limit = 50 } = options;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+
+    if (!supabaseUrl) {
+      let prods = [];
+      for (const [k, v] of localStore.entries()) {
+        if (k.startsWith('product:') && (v.vendor_id === vendorId || v.seller_id === vendorId)) {
+          prods.push(v);
+        }
+      }
+      if (category && category !== 'all') {
+        prods = prods.filter(p => p.category_id === category || p.category_id === `cat-${category}`);
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        prods = prods.filter(p => (p.name && p.name.toLowerCase().includes(q)) || (p.sku && p.sku.toLowerCase().includes(q)));
+      }
+      prods.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      const total = prods.length;
+      const pages = Math.ceil(total / limitNum) || 1;
+      const offset = (pageNum - 1) * limitNum;
+      return { data: prods.slice(offset, offset + limitNum), pagination: { total, page: pageNum, limit: limitNum, totalPages: pages } };
+    }
+
+    let query = supabase.from('products').select('*', { count: 'exact' }).eq('vendor_id', vendorId);
+    if (category && category !== 'all') query = query.eq('category_id', category);
+    if (search) query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%`);
+    const offset = (pageNum - 1) * limitNum;
+    const { data, count, error } = await query.range(offset, offset + limitNum - 1).order('created_at', { ascending: false });
+    if (error) throw error;
+    return { data: data || [], pagination: { total: count || 0, page: pageNum, limit: limitNum, totalPages: Math.ceil((count || 0) / limitNum) || 1 } };
+  },
+
+  async getVendorOrders(vendorId) {
+    if (!supabaseUrl) {
+      const vendorOrders = [];
+      for (const [k, order] of localStore.entries()) {
+        if (!k.startsWith('order:')) continue;
+        const matchingItems = (order.items || order.order_items || []).filter(
+          item => item.vendor_id === vendorId || item.seller_id === vendorId
+        );
+        if (matchingItems.length > 0) {
+          const vendorSubtotal = matchingItems.reduce((acc, it) => acc + (Number(it.total_price) || 0), 0);
+          const vendorCommission = matchingItems.reduce((acc, it) => acc + (Number(it.commission_amount) || 0), 0);
+          const vendorPayout = matchingItems.reduce((acc, it) => acc + (Number(it.payout_amount) || (it.total_price - (it.commission_amount || 0))), 0);
+          vendorOrders.push({
+            id: order.id,
+            reference: order.reference,
+            order_number: order.order_number,
+            status: order.status,
+            payment_status: order.payment_status,
+            created_at: order.created_at,
+            customer_city: order.customer_city,
+            customer_name: order.customer_name,
+            items: matchingItems,
+            vendor_subtotal: vendorSubtotal,
+            vendor_commission: vendorCommission,
+            vendor_payout: vendorPayout,
+          });
+        }
+      }
+      return vendorOrders.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    }
+    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    const list = [];
+    for (const order of (data || [])) {
+      const matchingItems = (order.items || []).filter(item => item.vendor_id === vendorId);
+      if (matchingItems.length > 0) {
+        const vendorSubtotal = matchingItems.reduce((acc, it) => acc + (Number(it.total_price) || 0), 0);
+        const vendorCommission = matchingItems.reduce((acc, it) => acc + (Number(it.commission_amount) || 0), 0);
+        list.push({
+          id: order.id,
+          reference: order.reference,
+          status: order.status,
+          payment_status: order.payment_status,
+          created_at: order.created_at,
+          items: matchingItems,
+          vendor_subtotal: vendorSubtotal,
+          vendor_commission: vendorCommission,
+          vendor_payout: vendorSubtotal - vendorCommission,
+        });
+      }
+    }
+    return list;
+  },
+
+  async getVendorAnalytics(vendorId) {
+    const orders = await this.getVendorOrders(vendorId);
+    let totalSales = 0;
+    let totalCommission = 0;
+    let totalPayout = 0;
+    let itemsSold = 0;
+
+    for (const ord of orders) {
+      if (ord.payment_status === 'paid' || ord.status === 'confirmed' || ord.status === 'delivered') {
+        totalSales += ord.vendor_subtotal || 0;
+        totalCommission += ord.vendor_commission || 0;
+        totalPayout += ord.vendor_payout || 0;
+        for (const it of ord.items) {
+          itemsSold += (Number(it.quantity) || 1);
+        }
+      }
+    }
+
+    const productsRes = await this.getVendorProducts(vendorId, { limit: 100 });
+    const productCount = productsRes.pagination?.total || productsRes.data?.length || 0;
+
+    return {
+      vendor_id: vendorId,
+      total_sales: totalSales,
+      total_commission: totalCommission,
+      total_payout: totalPayout,
+      total_orders: orders.length,
+      items_sold: itemsSold,
+      active_products_count: productCount,
+    };
+  },
+
+  // ── Paymob Webhook Durable Idempotency (Phase 3 SEC-01) ──
+  async recordPaymobTransaction(txRecord) {
+    const txId = String(txRecord.transaction_id || txRecord.id || '');
+    if (!txId) return { success: false, duplicate: false };
+
+    if (!supabaseUrl) {
+      const existing = localStore.get(`paymob_tx:${txId}`);
+      if (existing) {
+        return { success: true, duplicate: true, record: existing };
+      }
+      const record = {
+        id: `ptx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        transaction_id: txId,
+        order_id: txRecord.order_id,
+        amount_cents: txRecord.amount_cents,
+        currency: txRecord.currency || 'EGP',
+        status: txRecord.status || 'success',
+        raw_data: txRecord.data || null,
+        created_at: new Date().toISOString(),
+      };
+      localStore.set(`paymob_tx:${txId}`, record);
+      saveStoreToDisk();
+      return { success: true, duplicate: false, record };
+    }
+
+    const { data: existing } = await supabase.from('paymob_transactions').select('*').eq('paymob_order_id', txId).maybeSingle();
+    if (existing) {
+      return { success: true, duplicate: true, record: existing };
+    }
+    const { data, error } = await supabase.from('paymob_transactions').insert({
+      paymob_order_id: txId,
+      order_id: txRecord.order_id,
+      amount_cents: txRecord.amount_cents || 0,
+      currency: txRecord.currency || 'EGP',
+      status: txRecord.status || 'success',
+      hmac_valid: true,
+      payment_data: txRecord.data || {},
+    }).select().single();
+    if (error) {
+      if (error.code === '23505') {
+        return { success: true, duplicate: true };
+      }
+      throw error;
+    }
+    return { success: true, duplicate: false, record: data };
   },
 };

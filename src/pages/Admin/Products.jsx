@@ -258,7 +258,7 @@ export default function Products() {
           style={{ padding: '10px 20px', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontSize: 'var(--text-xs)', gap: 8 }}
         >
           <Plus size={16} />
-          <span>➕ إضافة منتج جديد (Add Product)</span>
+          <span>إضافة منتج جديد (Add Product)</span>
         </button>
       </div>
 
@@ -857,7 +857,7 @@ export default function Products() {
                   className="btn btn-th-orange btn-apple-tactile"
                   style={{ flex: 1, padding: 12, borderRadius: 'var(--radius-sm)', fontWeight: 800 }}
                 >
-                  {submitting ? 'جارِ الحفظ...' : editingProduct ? 'حفظ التعديلات ✓' : 'إضافة المنتج للمتجر ✓'}
+                  {submitting ? 'جارِ الحفظ...' : editingProduct ? 'حفظ التعديلات' : 'إضافة المنتج للمتجر'}
                 </button>
                 <button
                   type="button"

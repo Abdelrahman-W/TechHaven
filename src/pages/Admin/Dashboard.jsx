@@ -87,13 +87,13 @@ export default function Dashboard() {
       {/* ── Welcome Header & Top Bar ─────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span>لوحة الإدارة التنفيذية</span>
-            <span style={{ fontSize: '0.75rem', padding: '3px 10px', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 20, fontWeight: 700 }}>
+            <span style={{ fontSize: '0.72rem', padding: '2px 8px', background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: 'var(--radius-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Live Connected
             </span>
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', margin: 0 }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
             نظرة شاملة ومباشرة على مؤشرات الأداء، الشحنات المعلقة، وتنبيهات المخزون الحرجة
           </p>
         </div>
@@ -103,19 +103,18 @@ export default function Dashboard() {
             to="/admin/products"
             className="btn btn-primary"
             style={{
-              padding: '9px 18px',
-              borderRadius: 10,
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-xs)',
               fontWeight: 800,
-              fontSize: '0.85rem',
+              fontSize: 'var(--text-xs)',
               textDecoration: 'none',
               gap: 6,
-              background: 'linear-gradient(135deg, var(--brand-orange) 0%, #FF2E00 100%)',
+              background: 'var(--brand-orange)',
               color: '#FFF',
-              border: 'none',
-              boxShadow: '0 4px 15px rgba(255, 94, 20, 0.3)',
+              border: '1px solid var(--brand-orange)',
             }}
           >
-            <Plus size={16} />
+            <Plus size={15} />
             <span>إضافة منتج جديد</span>
           </Link>
 
@@ -123,18 +122,18 @@ export default function Dashboard() {
             to="/admin/analytics"
             className="btn"
             style={{
-              padding: '9px 18px',
-              borderRadius: 10,
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-xs)',
               fontWeight: 700,
-              fontSize: '0.85rem',
+              fontSize: 'var(--text-xs)',
               textDecoration: 'none',
               gap: 6,
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid var(--border)',
-              color: '#FFF',
+              background: 'var(--bg-tertiary)',
+              border: '1px solid var(--border-default)',
+              color: 'var(--text-primary)',
             }}
           >
-            <BarChart3 size={16} color="var(--primary)" />
+            <BarChart3 size={15} color="var(--brand-orange)" />
             <span>التقارير المالية</span>
           </Link>
 
@@ -143,16 +142,16 @@ export default function Dashboard() {
             onClick={fetchDashboardData}
             className="btn"
             style={{
-              padding: '9px 14px',
-              borderRadius: 10,
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid var(--border)',
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-xs)',
+              background: 'var(--bg-tertiary)',
+              border: '1px solid var(--border-default)',
               color: 'var(--text-secondary)',
               cursor: 'pointer',
             }}
             title="تحديث البيانات"
           >
-            <RefreshCw size={16} className={loading ? 'spin' : ''} />
+            <RefreshCw size={15} className={loading ? 'spin' : ''} />
           </button>
         </div>
       </div>
@@ -168,25 +167,26 @@ export default function Dashboard() {
         <Link
           to="/admin/orders"
           style={{
-            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(56, 189, 248, 0.03) 100%)',
-            border: '1px solid rgba(56, 189, 248, 0.25)',
-            borderRadius: 12,
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-default)',
+            borderRight: '3px solid #38BDF8',
+            borderRadius: 'var(--radius-sm)',
             padding: '14px 18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             textDecoration: 'none',
             color: '#FFF',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.15s ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(56, 189, 248, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38BDF8' }}>
-              <ShoppingBag size={20} />
+            <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-xs)', background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38BDF8' }}>
+              <ShoppingBag size={18} />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: '0.92rem' }}>طلبات قيد التجهيز والشحن</div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>بانتظار الإسناد لشركات الشحن</div>
+              <div style={{ fontWeight: 800, fontSize: '0.88rem' }}>طلبات قيد التجهيز والشحن</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>بانتظار الإسناد لشركات الشحن</div>
             </div>
           </div>
           <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#38BDF8', fontFamily: 'monospace' }}>
@@ -197,28 +197,29 @@ export default function Dashboard() {
         <Link
           to="/b2b"
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 94, 20, 0.1) 0%, rgba(255, 94, 20, 0.03) 100%)',
-            border: '1px solid rgba(255, 94, 20, 0.25)',
-            borderRadius: 12,
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-default)',
+            borderRight: '3px solid var(--brand-orange)',
+            borderRadius: 'var(--radius-sm)',
             padding: '14px 18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             textDecoration: 'none',
             color: '#FFF',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.15s ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255, 94, 20, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-orange)' }}>
-              <Building2 size={20} />
+            <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-xs)', background: 'rgba(255, 94, 20, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-orange)' }}>
+              <Building2 size={18} />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: '0.92rem' }}>طلبات وعروض الشركات B2B</div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>متابعة طلبات التوريد وعروض الأسعار</div>
+              <div style={{ fontWeight: 800, fontSize: '0.88rem' }}>طلبات وعروض الشركات B2B</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>متابعة طلبات التوريد وعروض الأسعار</div>
             </div>
           </div>
-          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-orange)', background: 'rgba(255, 94, 20, 0.15)', padding: '4px 10px', borderRadius: 6 }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--brand-orange)', background: 'rgba(255, 94, 20, 0.12)', padding: '4px 8px', borderRadius: 'var(--radius-xs)' }}>
             عرض القسم ←
           </span>
         </Link>
@@ -226,20 +227,17 @@ export default function Dashboard() {
         <Link
           to="/admin/alerts"
           style={{
-            background: alertsSummary?.critical_count > 0
-              ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.04) 100%)'
-              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 100%)',
-            border: alertsSummary?.critical_count > 0
-              ? '1px solid rgba(239, 68, 68, 0.3)'
-              : '1px solid rgba(16, 185, 129, 0.25)',
-            borderRadius: 12,
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-default)',
+            borderRight: alertsSummary?.critical_count > 0 ? '3px solid #EF4444' : '3px solid #10B981',
+            borderRadius: 'var(--radius-sm)',
             padding: '14px 18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             textDecoration: 'none',
             color: '#FFF',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.15s ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -369,10 +367,10 @@ export default function Dashboard() {
         <div
           className="card"
           style={{
-            background: 'rgba(239, 68, 68, 0.05)',
+            background: 'rgba(239, 68, 68, 0.04)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: 16,
-            padding: 22,
+            borderRadius: 'var(--radius-sm)',
+            padding: 20,
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
@@ -459,9 +457,9 @@ export default function Dashboard() {
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border)',
-          borderRadius: 16,
-          padding: 24,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          borderRadius: 'var(--radius-sm)',
+          padding: 22,
+          boxShadow: 'none',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
